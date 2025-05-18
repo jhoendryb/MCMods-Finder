@@ -1,0 +1,9 @@
+{
+    "name": "apiComentForge",
+    "lockfileVersion": 3,
+    "requires": true,
+    "packages": {},
+    "dependencies": {
+        "bootstrap": "^5.3.2"
+    }
+}
