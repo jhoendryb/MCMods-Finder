@@ -137,18 +137,18 @@ Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE para más 
 
 ## Desarrollo Local
 
-1. Clonar el repositorio:
+1. Clona el repositorio:
 ```bash
 git clone https://github.com/jhoendryb/MCMods-Finder.git
 ```
 
-2. Abrir el proyecto en tu editor favorito
+2. Abre el archivo `index.html` en tu navegador
 
-3. Para desarrollo, se recomienda usar un servidor local:
+## Despliegue en GitHub Pages
+
+1. Instala las dependencias:
 ```bash
-# Opción 1: Usar Python
-python -m http.server 8000
-
+npm install
 # Opción 2: Usar Node.js
 npx http-server
 ```

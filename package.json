@@ -1,9 +1,19 @@
 {
     "name": "apiComentForge",
+    "version": "1.0.0",
+    "description": "Buscador de mods de Minecraft que muestra compatibilidad cliente/servidor",
+    "homepage": "https://jhoendryb.github.io/MCMods-Finder/",
     "lockfileVersion": 3,
     "requires": true,
     "packages": {},
+    "scripts": {
+        "deploy": "gh-pages -d .",
+        "predeploy": "npm run build"
+    },
     "dependencies": {
         "bootstrap": "^5.3.2"
+    },
+    "devDependencies": {
+        "gh-pages": "^6.0.0"
     }
 }
