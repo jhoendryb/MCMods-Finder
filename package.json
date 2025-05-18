@@ -7,8 +7,7 @@
     "requires": true,
     "packages": {},
     "scripts": {
-        "deploy": "gh-pages -d .",
-        "predeploy": "npm run build"
+        "deploy": "gh-pages -d ."
     },
     "dependencies": {
         "bootstrap": "^5.3.2"
