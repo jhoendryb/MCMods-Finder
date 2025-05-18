@@ -33,11 +33,21 @@ Una aplicación web moderna que te permite buscar y comparar mods de Minecraft d
 
 ```
 apiComentForge/
-├── index.html         # Interfaz principal
-├── index.css          # Estilos CSS
-├── itemsModrinth.js   # Búsqueda en Modrinth
-├── itemsForge.js      # Búsqueda en CurseForge
-└── searchCF.js       # Búsqueda de comentarios
+├── src/              # Código fuente
+│   ├── js/          # JavaScript
+│   │   ├── api/     # Funciones de búsqueda
+│   │   │   ├── itemsModrinth.js  # Búsqueda en Modrinth
+│   │   │   ├── itemsForge.js     # Búsqueda en CurseForge
+│   │   │   └── searchCF.js       # Búsqueda de comentarios
+│   │   └── utils.js             # Funciones principales
+│   └── css/           # Estilos
+│       └── index.css  # Estilos principales
+├── assets/           # Recursos
+│   └── data/         # Datos
+│       └── data.json # Datos de ejemplo
+├── index.html        # Página principal
+├── README.md         # Documentación
+└── .gitignore        # Archivos ignorados por git
 ```
 
 ## Funcionalidades
@@ -46,18 +56,52 @@ apiComentForge/
 - Búsqueda instantánea con debounce (800ms)
 - Indicador de carga mientras se buscan resultados
 - Resultados en tiempo real
+- Búsqueda simultánea en Modrinth y CurseForge
 
 ### Visualización
 - Tarjetas con información clara y organizada
-- Badges de compatibilidad (cliente y servidor)
+- Indicadores de compatibilidad (cliente y servidor):
+  - Modrinth: ✓ (requerido), ⚪ (opcional), ✗ (no compatible)
+  - CurseForge: ✓ (requerido), ✗ (no compatible), ⚪ (desconocido)
 - Botones para visitar las páginas originales
-- Sección de comentarios relevantes
+- Sección de comentarios relevantes:
+  - Búsqueda automática de la palabra "servidor" en los comentarios
+  - Resultados de comentarios de CurseForge
+  - Ayuda a determinar compatibilidad del servidor cuando la información no está disponible en los metadatos
+
+### Indicadores de Compatibilidad
+- Requerido (✓ verde)
+- Desconocido (⚪ azul)
+- No compatible (✗ rojo)
+
+### Fuentes de Datos
+- Modrinth: Compatibilidad detallada (cliente/servidor)
+- CurseForge: Compatibilidad básica (cliente) y desconocida para servidor
+  - Se busca en los comentarios la palabra "servidor" para ayudar a determinar compatibilidad
+
+### Tecnologías
+- HTML5
+- CSS3
+- JavaScript (módulos ES6)
+- Bootstrap 5.3.0 (CDN)
+- Bootstrap Icons 1.11.1 (CDN)
 
 ### Compatibilidad
 - Indicadores visuales para:
   - Requerido (✓ verde)
-  - Opcional (⚪ amarillo)
+  - Desconocido (⚪ azul)
   - No compatible (✗ rojo)
+
+### Fuentes de datos
+- Modrinth: Compatibilidad detallada (cliente/servidor)
+- CurseForge: Compatibilidad básica (cliente) y desconocida para servidor
+
+### Tecnologías
+- HTML5
+- CSS3
+- JavaScript (módulos ES6)
+- Bootstrap 5.3.0 (CDN)
+- Bootstrap Icons 1.11.1 (CDN)
 
 ## Tecnologías Utilizadas
 
@@ -70,6 +114,46 @@ apiComentForge/
 ## Licencia
 
 Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.
+
+## Estructura de Carpetas
+
+- `src/`: Código fuente principal
+  - `js/`: Archivos JavaScript
+    - `api/`: Funciones de búsqueda
+    - `utils.js`: Funciones principales
+  - `css/`: Estilos CSS
+- `assets/`: Recursos
+  - `data/`: Datos de ejemplo
+- `index.html`: Página principal
+- `README.md`: Documentación
+- `.gitignore`: Archivos ignorados por git
+
+## Requisitos del Sistema
+
+- Navegador web moderno
+- Conexión a Internet
+- Git (para desarrollo)
+- Node.js (opcional, para desarrollo local)
+
+## Desarrollo Local
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/jhoendryb/MCMods-Finder.git
+```
+
+2. Abrir el proyecto en tu editor favorito
+
+3. Para desarrollo, se recomienda usar un servidor local:
+```bash
+# Opción 1: Usar Python
+python -m http.server 8000
+
+# Opción 2: Usar Node.js
+npx http-server
+```
+
+4. Abrir el navegador en `http://localhost:8000`
 
 ## Contribución
 
