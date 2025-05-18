@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Mods Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="src/css/index.css">
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <div class="logo">Minecraft Mods Finder</div>
+            <p class="subtitle">Encuentra los mejores mods de Minecraft en un solo lugar</p>
+        </div>
+
+        <div class="search-container">
+            <div class="input-group mb-4">
+                <span class="input-group-text bg-transparent text-white border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control search-input" id="searchInput"
+                    placeholder="Busca mods de Minecraft...">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status"
+                        aria-hidden="true"></span>
+                    <span id="buttonText">Buscar</span>
+                </button>
+            </div>
+
+            <div class="row result-section">
+                <div class="col-md-6">
+                    <h3 class="section-title">
+                        <i class="bi bi-modem"></i> Modrinth
+                    </h3>
+                    <div id="result-modrinth" class="row">
+                        <div class="col-12 text-center py-5">
+                            <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mt-2">Los resultados de Modrinth aparecerán aquí</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h3 class="section-title">
+                        <i class="bi bi-hammer"></i> CurseForge
+                    </h3>
+                    <div id="result-forge" class="row">
+                        <div class="col-12 text-center py-5">
+                            <i class="bi bi-box-seam" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mt-2">Los resultados de CurseForge aparecerán aquí</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <h3 class="section-title">
+                    <i class="bi bi-chat-square-text"></i> Comentarios Recientes
+                </h3>
+                <div id="result-commentForge">
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-square-text" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">Los comentarios de los mods seleccionados aparecerán aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="src/js/api/itemsModrinth.js"></script>
+    <script src="src/js/api/itemsForge.js"></script>
+    <script src="src/js/api/searchCF.js"></script>
+    <script src="src/js/utils.js"></script>
+
+    <script>
+        function showLoading(show) {
+            const spinner = document.getElementById('loadingSpinner');
+            const buttonText = document.getElementById('buttonText');
+
+            if (show) {
+                spinner.classList.remove('d-none');
+                buttonText.textContent = 'Buscando...';
+            } else {
+                spinner.classList.add('d-none');
+                buttonText.textContent = 'Buscar';
+            }
+        }
+
+        function createModCard(mod, source) {
+            const card = document.createElement('div');
+            card.className = 'col-12 mb-3';
+
+            // Determinar los iconos para client_side y server_side
+            const clientIcon = mod.client_side === 'required' ? 'bi-check-circle-fill' :
+                mod.client_side === 'optional' ? 'bi-circle' :
+                    'bi-x-circle-fill';
+            const serverIcon = mod.server_side === 'required' ? 'bi-check-circle-fill' :
+                mod.server_side === 'optional' ? 'bi-circle' :
+                    'bi-x-circle-fill';
+
+            // Colores para los iconos
+            const clientColor = mod.client_side === 'required' ? 'success' :
+                mod.client_side === 'optional' ? 'warning' :
+                    'danger';
+            const serverColor = mod.server_side === 'required' ? 'success' :
+                mod.server_side === 'optional' ? 'warning' :
+                    'danger';
+
+            card.innerHTML = `
+                <div class="mod-card">
+                    <h4 class="mod-title">${mod.title}</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-${clientColor} me-2">
+                                <i class="bi ${clientIcon} me-1"></i>Cliente
+                            </span>
+                            <span class="badge bg-${serverColor}">
+                                <i class="bi ${serverIcon} me-1"></i>Servidor
+                            </span>
+                        </div>
+                        <span class="badge bg-primary">${source}</span>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        ${mod.url ? `<a href="${mod.url[0]}" target="_blank" class="btn btn-sm btn-view">
+                            Ver <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>` : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createComment(comment) {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment-card';
+            commentDiv.textContent = comment.text;
+            return commentDiv;
+        }
+
+        function printJSONModrinth(data) {
+            const container = document.getElementById("result-modrinth");
+            container.innerHTML = '';
+
+            if (data && data.length > 0) {
+                data.forEach(mod => {
+                    container.appendChild(createModCard(mod, 'Modrinth'));
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-3">
+                        <p>No se encontraron resultados en Modrinth</p>
+                    </div>
+                `;
+            }
+        }
+
+        function printJSONForge(data) {
+            const container = document.getElementById("result-forge");
+            container.innerHTML = '';
+
+            if (data && data.length > 0) {
+                data.forEach(mod => {
+                    container.appendChild(createModCard(mod, 'CurseForge'));
+                    // Buscar comentarios para el primer mod encontrado
+                    if (mod.id) {
+                        searchCF(`https://www.curseforge.com/api/v1/mods/${mod.id}/comments?size=5`, 'server')
+                            .then(printJSONCommentForge);
+                    }
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-3">
+                        <p>No se encontraron resultados en CurseForge</p>
+                    </div>
+                `;
+            }
+        }
+
+        function printJSONCommentForge(data) {
+            const container = document.getElementById("result-commentForge");
+
+            if (data && data.coincidences && data.coincidences.length > 0) {
+                container.innerHTML = '';
+                data.coincidences.slice(0, 5).forEach(comment => {
+                    container.appendChild(createComment(comment));
+                });
+            } else if (container.children.length <= 1) {
+                container.innerHTML = `
+                    <div class="text-center py-3">
+                        <p>No se encontraron comentarios recientes</p>
+                    </div>
+                `;
+            }
+        }
+
+
+        function performSearch() {
+            const searchInput = document.getElementById("searchInput");
+            const searchTerm = searchInput.value.trim();
+
+            if (searchTerm.length < 2) {
+                return;
+            }
+
+            // Mostrar estado de carga
+            showLoading(true);
+
+            // Limpiar resultados anteriores
+            document.getElementById("result-modrinth").innerHTML = '';
+            document.getElementById("result-forge").innerHTML = '';
+            document.getElementById("result-commentForge").innerHTML = '';
+
+            // Realizar búsquedas en paralelo
+            Promise.all([
+                searchModrinth(searchTerm).then(printJSONModrinth),
+                searchForge(searchTerm).then(printJSONForge)
+            ]).finally(() => {
+                showLoading(false);
+            });
+        }
+
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById("searchInput");
+            const searchButton = document.getElementById("searchButton");
+
+            // Buscar al hacer clic en el botón
+            searchButton.addEventListener("click", performSearch);
+
+            // Buscar al presionar Enter en el input
+            searchInput.addEventListener("keyup", function (event) {
+                if (event.key === "Enter") {
+                    performSearch();
+                }
+            });
+
+            // Búsqueda con debounce para no hacer muchas llamadas mientras se escribe
+            let searchTimeout;
+            searchInput.addEventListener("input", function () {
+                clearTimeout(searchTimeout);
+                if (this.value.length > 2) {
+                    searchTimeout = setTimeout(performSearch, 800);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
