@@ -22,4 +22,4 @@ function searchModrinth(text) {
         });
 }
 
-// searchModrinth(`ParCool+ / Compatibility Addon`).then(data => console.log(data));
+
