@@ -66,7 +66,8 @@
                     <div class="text-center py-5">
                         <i class="bi bi-chat-square-text" style="font-size: 3rem; opacity: 0.3;"></i>
                         <p class="mt-2">Los comentarios de los mods seleccionados aparecerán aquí</p>
-                        <p class="small text-muted mt-2">Se buscan automáticamente comentarios que mencionen compatibilidad con servidores</p>
+                        <p class="small text-muted mt-2">Se buscan automáticamente comentarios que mencionen
+                            compatibilidad con servidores</p>
                     </div>
                 </div>
             </div>
@@ -113,18 +114,21 @@
                 mod.server_side === 'optional' ? 'warning' :
                     'danger';
 
+            const isServerOrCliente = (source === 'Modrinth') ? `
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-${clientColor} me-2">
+                        <i class="bi ${clientIcon} me-1"></i>Cliente
+                    </span>
+                    <span class="badge bg-${serverColor}">
+                        <i class="bi ${serverIcon} me-1"></i>Servidor
+                    </span>
+                </div>` : '';
+
             card.innerHTML = `
                 <div class="mod-card">
                     <h4 class="mod-title">${mod.title}</h4>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-${clientColor} me-2">
-                                <i class="bi ${clientIcon} me-1"></i>Cliente
-                            </span>
-                            <span class="badge bg-${serverColor}">
-                                <i class="bi ${serverIcon} me-1"></i>Servidor
-                            </span>
-                        </div>
+                        ${isServerOrCliente}
                         <span class="badge bg-primary">${source}</span>
                     </div>
                     <div class="d-flex justify-content-end">
