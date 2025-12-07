@@ -26,6 +26,4 @@ const modrinthApiPath = async function (type, input) {
     return await fetchApi(urlModrinth);
 };
 
-console.log(modrinthApiPath("search", {
-    id: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
-}));
+console.log(modrinthApiPath("project", "T9jPYVri"));
