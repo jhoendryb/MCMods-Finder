@@ -12,7 +12,7 @@ const modrinthApi = async function (type, params) {
 
     console.log(urlModrinth);
 
-    // return await fetchApi(urlModrinth);
+    return await fetchApi(urlModrinth);
 };
 
 console.log(modrinthApi("search", {
