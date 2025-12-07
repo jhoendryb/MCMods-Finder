@@ -2,28 +2,33 @@ const apiTemplete = {
     search: {
         limit: {
             type: "integer",
-            priority: "opcional",
-            value: ''
+            priority: "opcional"
         },
         index: {
             type: "string",
-            priority: "opcional",
-            value: ''
+            priority: "opcional"
         },
         query: {
             type: "string",
-            priority: "opcional",
-            value: ''
+            priority: "opcional"
         },
         facets: {
             type: "string",
-            priority: "opcional",
-            value: ''
+            priority: "opcional"
         },
         offset: {
             type: "integer",
-            priority: "opcional",
-            value: ''
+            priority: "opcional"
+        }
+    },
+    project: {
+        id: {
+            type: "string",
+            priority: "opcional"
+        },
+        slug: {
+            type: "string",
+            priority: "opcional"
         }
     }
 };
