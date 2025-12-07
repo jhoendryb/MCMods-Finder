@@ -10,8 +10,6 @@ const modrinthApiParams = async function (type, params) {
 
     const urlModrinth = `https://api.modrinth.com/v2/${type}?${paramsString.toString()}`;
 
-    console.log(urlModrinth);
-
     return await fetchApi(urlModrinth);
 };
 
