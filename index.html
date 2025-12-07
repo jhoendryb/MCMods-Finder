@@ -459,7 +459,7 @@
                 const results = await modrinthApiParams("search", {
                     query: modName,
                     limit: 1,
-                    facets: '[["project_type:mod"]]'
+                    facets: [["project_type:mod"]]
                 });
 
                 if (results.hits && results.hits.length > 0) {
@@ -541,7 +541,7 @@
                     const results = await modrinthApiParams("search", {
                         query: query,
                         limit: 5,
-                        facets: '["project_type:mod"]'
+                        facets: [["project_type:mod"]]
                     });
 
                     searchResults.innerHTML = '';
