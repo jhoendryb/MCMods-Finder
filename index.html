@@ -551,163 +551,38 @@
             return icons[iconType].unknown;
         }
 
-        // Función para mostrar el modal de búsqueda manual
-        function showManualSearchModal(mod, modElement) {
-            const modal = new bootstrap.Modal(document.getElementById('manualSearchModal'));
-            const modalTitle = document.getElementById('manualSearchModalLabel');
-            const searchInput = document.getElementById('manualSearchInput');
-            const searchButton = document.getElementById('manualSearchButton');
-            const searchResults = document.getElementById('manualSearchResults');
-            const loadingSpinner = document.getElementById('manualSearchLoading');
-            let currentMod = mod;
-            let currentModElement = modElement;
-
-            // Configurar el modal
-            modalTitle.textContent = `Buscar: ${mod.name}`;
-            searchInput.value = mod.name;
-            searchResults.innerHTML = '';
-            loadingSpinner.classList.add('d-none');
-
-            // Función para realizar la búsqueda
-            const performSearch = async () => {
-                const query = searchInput.value.trim();
-                if (!query) return;
-
-                searchResults.innerHTML = '';
-                loadingSpinner.classList.remove('d-none');
-
-                try {
-                    const results = await modrinthApiParams("search", {
-                        query: query,
-                        limit: 5,
-                        facets: [["project_type:mod"]]
-                    });
-
-                    searchResults.innerHTML = '';
-
-                    if (results.hits?.length > 0) {
-                        results.hits.forEach((mod, index) => {
-                            const modElement = document.createElement('div');
-                            modElement.className = 'list-group-item list-group-item-action';
-                            modElement.dataset.modId = mod.project_id || mod.id;
-                            modElement.dataset.modIndex = index;
-
-                            // Get compatibility info
-                            const compatibility = [];
-                            if (mod.client_side === 'required') compatibility.push('Cliente');
-                            if (mod.server_side === 'required') compatibility.push('Servidor');
-
-                            modElement.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="me-3 flex-grow-1">
-                                        <div class="d-flex align-items-center mb-1 flex-wrap">
-                                            <h6 class="mb-0 me-2">${mod.title || 'Sin título'}</h6>
-                                            ${mod.loader_categories?.includes('fabric') ? '<span class="badge bg-purple me-1">Fabric</span>' : ''}
-                                            ${mod.loader_categories?.includes('forge') ? '<span class="badge bg-orange me-1">Forge</span>' : ''}
-                                            ${compatibility.length > 0 ? `<span class="badge bg-dark">${compatibility.join(' + ')}</span>` : ''}
-                                        </div>
-                                        <p class="small text-muted mb-2">${mod.description ? mod.description.substring(0, 120) + '...' : 'Sin descripción'}</p>
-                                        <div class="d-flex flex-wrap gap-1 align-items-center">
-                                            ${mod.versions?.slice(0, 3).map(v =>
-                                `<span class="badge bg-secondary">${v}</span>`
-                            ).join('')}
-                                            ${mod.versions?.length > 3 ?
-                                    `<span class="badge bg-dark">+${mod.versions.length - 3} más</span>` : ''
-                                }
-                                        </div>
-                                    </div>
-                                    <div class="text-end ms-3">
-                                        <div class="d-flex flex-column align-items-end">
-                                            <span class="badge bg-primary mb-2">
-                                                <i class="bi bi-download"></i> ${mod.downloads?.toLocaleString() || '0'}
-                                            </span>
-                                            <button class="btn btn-sm btn-outline-primary view-details" data-mod-id="${mod.project_id || mod.id}">
-                                                <i class="bi bi-info-circle"></i> Detalles
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>`;
-
-                            // Add click handler for the entire item
-                            modElement.addEventListener('click', (e) => {
-                                if (!e.target.closest('.view-details')) {
-                                    selectMod(index, mod.project_id || mod.id);
-                                }
-                            });
-
-                            // Add click handler for details button
-                            modElement.querySelector('.view-details')?.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                showModDetails(mod.project_id || mod.id);
-                            });
-
-                            searchResults.appendChild(modElement);
-                        });
-                    } else {
-                        searchResults.innerHTML = '<div class="text-muted text-center py-4">No se encontraron resultados</div>';
-                    }
-                } catch (error) {
-                    console.error('Error en la búsqueda:', error);
-                    searchResults.innerHTML = `
-                        <div class="alert alert-danger m-2">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            Error al buscar mods: ${error.message || 'Error desconocido'}
-                        </div>`;
-                } finally {
-                    loadingSpinner.classList.add('d-none');
-                }
-            };
-
-            // Add event listeners
-            searchButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                performSearch();
-            });
-
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    performSearch();
-                }
-            });
-
-            // Show the modal
-            modal.show();
-        }
-
-        // Agregar estilos dinámicos
+        // Add CSS styles
         const style = document.createElement('style');
         style.textContent = `
             .toast {
                 opacity: 0;
                 transition: opacity 0.15s ease-in-out;
-                transition: opacity 0.15s ease -in -out;
             }
-                                        .toast.show {
+            .toast.show {
                 opacity: 1;
             }
-                                        .bg - purple {
-                background - color: #6f42c1;
+            .bg-purple {
+                background-color: #6f42c1;
                 color: white;
             }
-                                        .bg - orange {
-                background - color: #fd7e14;
+            .bg-orange {
+                background-color: #fd7e14;
                 color: white;
             }
-                                        .list - group - item {
+            .list-group-item {
                 cursor: pointer;
                 transition: all 0.2s;
             }
-                                        .list - group - item:hover {
-                background - color: rgba(255, 255, 255, 0.05);
+            .list-group-item:hover {
+                background-color: rgba(255, 255, 255, 0.05);
             }
-                                        .list - group - item.active {
-                background - color: rgba(13, 110, 253, 0.2);
-                border - color: rgba(13, 110, 253, 0.5);
+            .list-group-item.active {
+                background-color: rgba(13, 110, 253, 0.2);
+                border-color: rgba(13, 110, 253, 0.5);
                 color: white;
             }
-                                        .btn - outline - primary {
-                --bs - btn - hover - bg: rgba(13, 110, 253, 0.1);
+            .btn-outline-primary {
+                --bs-btn-hover-bg: rgba(13, 110, 253, 0.1);
             }
         `;
         document.head.appendChild(style);
