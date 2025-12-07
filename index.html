@@ -481,37 +481,78 @@
                 return;
             }
 
-            searchResultsDiv.innerHTML = results.map((mod, index) => `
-                <div class="list-group-item list-group-item-action" data-mod-id="${mod.project_id}" data-mod-index="${selectedMod}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="me-3">
-                            <div class="d-flex align-items-center mb-1">
-                                <h6 class="mb-0">${mod.title || 'Sin título'}</h6>
-                                ${mod.loader_categories?.includes('fabric') ? '<span class="badge bg-purple ms-2">Fabric</span>' : ''}
-                                ${mod.loader_categories?.includes('forge') ? '<span class="badge bg-orange ms-1">Forge</span>' : ''}
-                            </div>
-                            <p class="small text-muted mb-1">${mod.description ? mod.description.substring(0, 100) + '...' : 'Sin descripción'}</p>
-                            <div class="d-flex flex-wrap gap-1">
-                                ${mod.versions ? mod.versions.slice(0, 3).map(v =>
-                `<span class="badge bg-secondary">${v}</span>`
-            ).join('') : ''}
-                                ${mod.versions && mod.versions.length > 3 ?
-                    `<span class="badge bg-dark">+${mod.versions.length - 3} más</span>` : ''}
-                            </div>
+            searchResultsDiv.innerHTML = results.map((mod, index) => {
+                // Determinar compatibilidad
+                const compatibility = [];
+                if (mod.client_side === 'required') compatibility.push('Cliente');
+                if (mod.server_side === 'required') compatibility.push('Servidor');
+                if (mod.client_side === 'optional' || mod.server_side === 'optional') compatibility.push('Opcional');
+
+                // Determinar el color del borde según la compatibilidad
+                let borderClass = '';
+                if (mod.client_side === 'required' && mod.server_side === 'required') {
+                    borderClass = 'border-primary border-2';
+                } else if (mod.client_side === 'required') {
+                    borderClass = 'border-success border-2';
+                } else if (mod.server_side === 'required') {
+                    borderClass = 'border-danger border-2';
+                } else if (mod.client_side === 'optional' || mod.server_side === 'optional') {
+                    borderClass = 'border-warning border-2';
+                }
+
+                return `
+                <div class="list-group-item list-group-item-action p-0 overflow-hidden ${borderClass}" data-mod-id="${mod.project_id}" data-mod-index="${selectedMod}">
+                    <div class="d-flex">
+                        <!-- Barra lateral de compatibilidad -->
+                        <div class="d-flex flex-column justify-content-between bg-dark p-2 text-center" style="min-width: 50px;">
+                            ${mod.client_side === 'required' ?
+                        '<div class="text-success mb-2" title="Cliente"><i class="bi bi-pc-display fs-4"></i></div>' :
+                        mod.client_side === 'optional' ?
+                            '<div class="text-warning mb-2" title="Cliente (Opcional)"><i class="bi bi-pc-display fs-4"></i></div>' :
+                            '<div class="text-muted mb-2" title="No es necesario en cliente"><i class="bi bi-pc-display fs-4"></i><i class="bi bi-slash-circle text-danger"></i></div>'}
+                            
+                            ${mod.server_side === 'required' ?
+                        '<div class="text-danger" title="Servidor"><i class="bi bi-hdd-rack fs-4"></i></div>' :
+                        mod.server_side === 'optional' ?
+                            '<div class="text-warning" title="Servidor (Opcional)"><i class="bi bi-hdd-rack fs-4"></i></div>' :
+                            '<div class="text-muted" title="No es necesario en servidor"><i class="bi bi-hdd-rack fs-4"><i class="bi bi-slash-circle text-danger"></i></i></div>'}
                         </div>
-                        <div class="text-end">
-                            <span class="badge bg-primary">
-                                <i class="bi bi-download"></i> ${mod.downloads ? mod.downloads.toLocaleString() : '0'}
-                            </span>
-                            <div class="mt-2">
-                                <button class="btn btn-sm btn-outline-primary view-details" data-mod-id="${mod.project_id}">
-                                    <i class="bi bi-info-circle"></i> Detalles
-                                </button>
+                        
+                        <!-- Contenido principal -->
+                        <div class="p-3 flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="me-3">
+                                    <div class="d-flex align-items-center mb-1 flex-wrap">
+                                        <h6 class="mb-0 me-2">${mod.title || 'Sin título'}</h6>
+                                        ${mod.loader_categories?.includes('fabric') ? '<span class="badge bg-purple me-1">Fabric</span>' : ''}
+                                        ${mod.loader_categories?.includes('forge') ? '<span class="badge bg-orange me-1">Forge</span>' : ''}
+                                        <span class="badge bg-dark">${compatibility.join(' + ')}</span>
+                                    </div>
+                                    <p class="small text-muted mb-2">${mod.description ? mod.description.substring(0, 120) + '...' : 'Sin descripción'}</p>
+                                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                                        ${mod.versions ? mod.versions.slice(0, 3).map(v =>
+                                `<span class="badge bg-secondary">${v}</span>`
+                            ).join('') : ''}
+                                        ${mod.versions && mod.versions.length > 3 ?
+                        `<span class="badge bg-dark">+${mod.versions.length - 3} más</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="d-flex flex-column align-items-end">
+                                        <span class="badge bg-primary mb-2">
+                                            <i class="bi bi-download"></i> ${mod.downloads ? mod.downloads.toLocaleString() : '0'}
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-primary view-details" data-mod-id="${mod.project_id}">
+                                            <i class="bi bi-info-circle"></i> Detalles
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+                </div >
+                    `).join('');
 
             // Agregar manejadores de eventos para los botones de detalles
             document.querySelectorAll('.view-details').forEach(button => {
@@ -542,12 +583,12 @@
             try {
                 // Mostrar carga
                 modalBody.innerHTML = `
-                    <div class="text-center py-4">
+                    < div class="text-center py-4" >
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Cargando...</span>
                         </div>
-                    </div>
-                `;
+                    </ >
+                    `;
 
                 // Obtener detalles del mod
                 const modDetails = await modrinthApiPath("project", modId);
@@ -563,7 +604,7 @@
                 // Crear el contenido del modal
                 modalTitle.textContent = modDetails.title || 'Detalles del Mod';
                 modalBody.innerHTML = `
-                    <div class="row">
+                    < div class="row" >
                         <div class="col-md-4 text-center mb-3 mb-md-0">
                             <img src="${modDetails.icon_url || 'https://via.placeholder.com/200'}" 
                                  class="img-fluid rounded mb-3" 
@@ -626,8 +667,8 @@
                             ).join('')}
                             </div>` : ''}
                         </div>
-                    </div>
-                `;
+                    </ >
+                    `;
 
                 // Actualizar enlace de descarga
                 modDownloadLink.href = `https://modrinth.com/mod/${modDetails.slug || modDetails.id}/version/latest`;
