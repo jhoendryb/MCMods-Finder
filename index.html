@@ -504,24 +504,30 @@
                 <div class="list-group-item list-group-item-action p-0 overflow-hidden ${borderClass}" data-mod-id="${mod.project_id}" data-mod-index="${selectedMod}">
                     <div class="d-flex">
                         <!-- Barra lateral de compatibilidad -->
-                        <div class="d-flex flex-column justify-content-between bg-dark p-2 text-center" style="min-width: 50px;">
-                            ${mod.client_side === 'required' ?
-                        '<div class="text-success mb-3" title="Cliente"><i class="bi bi-pc-display fs-4"></i></div>' :
+                        <div class="d-flex flex-column justify-content-center align-items-center bg-dark p-3 text-center" style="min-width: 70px; position: relative;">
+                            <!-- Ícono de Cliente -->
+                            <div class="compatibility-icon" style="margin-bottom: 15px; position: relative; width: 32px; height: 32px;">
+                                ${mod.client_side === 'required' ?
+                        '<i class="bi bi-pc-display fs-4 text-success" title="Cliente (Requerido)"></i>' :
                         mod.client_side === 'optional' ?
-                            '<div class="text-warning mb-3" title="Cliente (Opcional)"><i class="bi bi-pc-display fs-4"></i></div>' :
-                            '<div class="position-relative mb-3" title="No es necesario en cliente" style="width: 24px; height: 24px; margin: 0 auto 1rem auto;">' +
-                            '<i class="bi bi-pc-display fs-4 text-muted position-absolute"></i>' +
-                            '<i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; top: -8px;"></i>' +
+                            '<i class="bi bi-pc-display fs-4 text-warning" title="Cliente (Opcional)"></i>' :
+                            '<div style="position: relative; width: 100%; height: 100%;">' +
+                            '  <i class="bi bi-pc-display fs-4 text-muted position-absolute" style="left: 0; top: 0;"></i>' +
+                            '  <i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; bottom: -5px;"></i>' +
                             '</div>'}
+                            </div>
                             
-                            ${mod.server_side === 'required' ?
-                        '<div class="text-danger" title="Servidor"><i class="bi bi-hdd-rack fs-4"></i></div>' :
+                            <!-- Ícono de Servidor -->
+                            <div class="compatibility-icon" style="position: relative; width: 32px; height: 32px;">
+                                ${mod.server_side === 'required' ?
+                        '<i class="bi bi-hdd-rack fs-4 text-danger" title="Servidor (Requerido)"></i>' :
                         mod.server_side === 'optional' ?
-                            '<div class="text-warning" title="Servidor (Opcional)"><i class="bi bi-hdd-rack fs-4"></i></div>' :
-                            '<div class="position-relative" title="No es necesario en servidor" style="width: 24px; height: 24px; margin: 0 auto;">' +
-                            '<i class="bi bi-hdd-rack fs-4 text-muted position-absolute"></i>' +
-                            '<i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; top: -8px;"></i>' +
+                            '<i class="bi bi-hdd-rack fs-4 text-warning" title="Servidor (Opcional)"></i>' :
+                            '<div style="position: relative; width: 100%; height: 100%;">' +
+                            '  <i class="bi bi-hdd-rack fs-4 text-muted position-absolute" style="left: 0; top: 0;"></i>' +
+                            '  <i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; bottom: -5px;"></i>' +
                             '</div>'}
+                            </div>
                         </div> 
                         
                         
