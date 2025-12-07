@@ -16,6 +16,7 @@ const modrinthApiParams = async function (type, params) {
 };
 
 // console.log(modrinthApiParams("search", {
+//     query: "console sound",
 //     facets: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
 // }));
 
