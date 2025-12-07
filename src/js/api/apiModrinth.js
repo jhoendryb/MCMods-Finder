@@ -15,9 +15,9 @@ const modrinthApiParams = async function (type, params) {
     return await fetchApi(urlModrinth);
 };
 
-console.log(modrinthApiParams("search", {
-    facets: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
-}));
+// console.log(modrinthApiParams("search", {
+//     facets: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
+// }));
 
 const modrinthApiPath = async function (type, input) {
 
@@ -26,4 +26,4 @@ const modrinthApiPath = async function (type, input) {
     return await fetchApi(urlModrinth);
 };
 
-console.log(modrinthApiPath("project", "T9jPYVri"));
+// console.log(modrinthApiPath("project", "T9jPYVri"));
