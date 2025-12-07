@@ -693,6 +693,36 @@
 
     </script>
 
+    <!-- Modal de Búsqueda Manual -->
+    <div class="modal fade" id="manualSearchModal" tabindex="-1" aria-labelledby="manualSearchModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manualSearchModalLabel">Buscar Mod</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="search" class="form-control bg-dark text-white" placeholder="Buscar mod...">
+                        <button class="btn btn-primary" type="button">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span>
+                            Buscar
+                        </button>
+                    </div>
+                    <div class="list-group mt-3">
+                        <!-- Los resultados de la búsqueda se agregarán aquí -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
