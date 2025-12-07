@@ -178,6 +178,8 @@
         function createModCard(mod, source) {
             const card = document.createElement('div');
             card.className = 'col-12 mb-3';
+            if (mod.id) card.dataset.modId = mod.id;
+            if (mod.file) card.dataset.fileName = mod.fileName;
 
             // Usar name si title no está disponible (para mods locales)
             const modTitle = mod.title || mod.name || 'Nombre desconocido';
@@ -185,41 +187,77 @@
             // Determinar si es un mod local o remoto
             const isLocalMod = source === 'local';
 
-            // Para mods locales, obtener la información de compatibilidad si está disponible
-            let compatibilityInfo = '';
-            if (isLocalMod && (mod.client_side || mod.server_side)) {
-                const clientStatus = mod.client_side || 'unknown';
-                const serverStatus = mod.server_side || 'unknown';
+            // Obtener información de compatibilidad
+            const clientStatus = mod.client_side || 'unknown';
+            const serverStatus = mod.server_side || 'unknown';
 
-                compatibilityInfo = `
-                    <div class="d-flex align-items-center mt-2">
+            // Crear elementos de compatibilidad
+            const compatibilityInfo = `
+                <div class="compatibility-info mt-2">
+                    <div class="d-flex align-items-center gap-2">
                         ${getCompatibilityIcon('client', clientStatus)}
                         ${getCompatibilityIcon('server', serverStatus)}
-                        <small class="ms-2 text-muted">${mod.compatibility?.title || ''}</small>
-                    </div>`;
+                        <small class="text-muted">${mod.compatibility?.title || ''}</small>
+                    </div>
+                </div>`;
+
+            // Crear botones de acción
+            let actionButtons = '';
+            if (isLocalMod) {
+                actionButtons = `
+                    <button class="btn btn-sm btn-outline-primary search-mod" data-mod-id="${mod.id || ''}">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>`;
+            } else if (mod.url) {
+                actionButtons = `
+                    <a href="${mod.url[0]}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> Ver
+                    </a>`;
             }
 
             card.innerHTML = `
                 <div class="mod-card p-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                            <h5 class="mod-title mb-1">${modTitle}</h5>
+                            <div class="d-flex align-items-center mb-1">
+                                <h5 class="mod-title mb-0">${modTitle}</h5>
+                                <span class="badge ${isLocalMod ? 'bg-secondary' : 'bg-primary'} ms-2">
+                                    ${isLocalMod ? 'Local' : source}
+                                </span>
+                            </div>
                             ${mod.fileName ? `<small class="text-muted d-block">${mod.fileName}</small>` : ''}
                             ${compatibilityInfo}
                         </div>
                         <div class="d-flex flex-column align-items-end">
-                            <span class="badge ${isLocalMod ? 'bg-secondary' : 'bg-primary'} mb-2">
-                                ${isLocalMod ? 'Local' : source}
-                            </span>
-                            ${!isLocalMod && mod.url ? `
-                                <a href="${mod.url[0]}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-box-arrow-up-right"></i>
-                                </a>
+                            ${mod.downloads ? `
+                                <span class="badge bg-primary mb-2">
+                                    <i class="bi bi-download"></i> ${mod.downloads.toLocaleString()}
+                                </span>
                             ` : ''}
+                            ${actionButtons}
                         </div>
                     </div>
                 </div>
             `;
+
+            // Agregar manejadores de eventos
+            if (isLocalMod) {
+                const searchBtn = card.querySelector('.search-mod');
+                if (searchBtn) {
+                    searchBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showManualSearchModal(mod, card);
+                    });
+                }
+            }
+
+            // Hacer toda la tarjeta clickeable para mods locales
+            if (isLocalMod) {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', () => {
+                    showManualSearchModal(mod, card);
+                });
+            }
 
             return card;
         }
