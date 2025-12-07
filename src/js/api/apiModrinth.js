@@ -15,6 +15,6 @@ const modrinthApi = async function (type, params) {
     return await fetchApi(urlModrinth);
 };
 
-console.log(await modrinthApi("search", {
+console.log(modrinthApi("search", {
     facets: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
 }));
