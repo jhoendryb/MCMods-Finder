@@ -506,19 +506,25 @@
                         <!-- Barra lateral de compatibilidad -->
                         <div class="d-flex flex-column justify-content-between bg-dark p-2 text-center" style="min-width: 50px;">
                             ${mod.client_side === 'required' ?
-                        '<div class="text-success mb-2" title="Cliente"><i class="bi bi-pc-display fs-4"></i></div>' :
+                        '<div class="text-success mb-3" title="Cliente"><i class="bi bi-pc-display fs-4"></i></div>' :
                         mod.client_side === 'optional' ?
-                            '<div class="text-warning mb-2" title="Cliente (Opcional)"><i class="bi bi-pc-display fs-4"></i></div>' :
-                            '<div class="text-muted mb-2" title="No es necesario en cliente"><i class="bi bi-pc-display fs-4"></i><i class="bi bi-slash-circle text-danger"></i></div>'}
+                            '<div class="text-warning mb-3" title="Cliente (Opcional)"><i class="bi bi-pc-display fs-4"></i></div>' :
+                            '<div class="position-relative mb-3" title="No es necesario en cliente" style="width: 24px; height: 24px; margin: 0 auto 1rem auto;">' +
+                            '<i class="bi bi-pc-display fs-4 text-muted position-absolute"></i>' +
+                            '<i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; top: -8px;"></i>' +
+                            '</div>'}
                             
                             ${mod.server_side === 'required' ?
                         '<div class="text-danger" title="Servidor"><i class="bi bi-hdd-rack fs-4"></i></div>' :
                         mod.server_side === 'optional' ?
                             '<div class="text-warning" title="Servidor (Opcional)"><i class="bi bi-hdd-rack fs-4"></i></div>' :
-                            '<div class="text-muted" title="No es necesario en servidor"><i class="bi bi-hdd-rack fs-4"><i class="bi bi-slash-circle text-danger"></i></i></div>'}
-                        </div>
+                            '<div class="position-relative" title="No es necesario en servidor" style="width: 24px; height: 24px; margin: 0 auto;">' +
+                            '<i class="bi bi-hdd-rack fs-4 text-muted position-absolute"></i>' +
+                            '<i class="bi bi-slash-circle text-danger position-absolute" style="font-size: 1.2em; right: -8px; top: -8px;"></i>' +
+                            '</div>'}
+                        </div> 
                         
-                        <!-- Contenido principal -->
+                        < !--Contenido principal-- >
                         <div class="p-3 flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="me-3">
@@ -549,9 +555,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                    `}).join('');
+                    </div >
+                </div >
+                        `}).join('');
 
             // Agregar manejadores de eventos para los botones de detalles
             document.querySelectorAll('.view-details').forEach(button => {
@@ -582,12 +588,12 @@
             try {
                 // Mostrar carga
                 modalBody.innerHTML = `
-                    < div class="text-center py-4" >
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
+                        < div class="text-center py-4" >
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
                     </ >
-                    `;
+                        `;
 
                 // Obtener detalles del mod
                 const modDetails = await modrinthApiPath("project", modId);
@@ -603,7 +609,7 @@
                 // Crear el contenido del modal
                 modalTitle.textContent = modDetails.title || 'Detalles del Mod';
                 modalBody.innerHTML = `
-                    < div class="row" >
+                        < div class="row" >
                         <div class="col-md-4 text-center mb-3 mb-md-0">
                             <img src="${modDetails.icon_url || 'https://via.placeholder.com/200'}" 
                                  class="img-fluid rounded mb-3" 
@@ -667,7 +673,7 @@
                             </div>` : ''}
                         </div>
                     </ >
-                    `;
+                        `;
 
                 // Actualizar enlace de descarga
                 modDownloadLink.href = `https://modrinth.com/mod/${modDetails.slug || modDetails.id}/version/latest`;
