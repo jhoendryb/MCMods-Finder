@@ -1,12 +1,12 @@
 const modrinthApi = async function (type, params) {
     const paramsString = new URLSearchParams();
-    // Object.keys(params).forEach(element => {
-    //     if (element === "facets") {
-    //         paramsString.append(element, JSON.stringify(params[element]));
-    //     } else {
-    //         paramsString.append(element, params[element]);
-    //     }
-    // });
+    Object.keys(params).forEach(element => {
+        if (element == "facets") {
+            paramsString.append(element, JSON.stringify(params[element]));
+        } else {
+            paramsString.append(element, params[element]);
+        }
+    });
 
     const urlModrinth = `https://api.modrinth.com/v2/${type}?${paramsString.toString()}`;
 
