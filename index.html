@@ -389,12 +389,69 @@
 
                 if (localMods.length > 0) {
                     modsComparison.classList.remove('d-none');
-                    await processLocalMods();
+                    await processLocalMods(localMods);
                 } else {
                     alert('No se encontraron archivos .jar en la selección. Asegúrate de seleccionar archivos .jar');
                 }
             });
         });
+
+        // Función para procesar los mods locales
+        async function processLocalMods(mods) {
+            try {
+                const modsContainer = document.getElementById('localModsList');
+                modsContainer.innerHTML = ''; // Limpiar resultados anteriores
+
+                // Mostrar loading
+                const loadingElement = document.createElement('div');
+                loadingElement.className = 'text-center my-4';
+                loadingElement.innerHTML = `
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Procesando ${mods.length} mods...</p>
+                `;
+                modsContainer.appendChild(loadingElement);
+
+                // Procesar cada mod
+                for (const mod of mods) {
+                    try {
+                        // Crear tarjeta para el mod
+                        const modCard = createModCard(mod, 'local');
+                        modsContainer.appendChild(modCard);
+
+                        // Obtener información de compatibilidad
+                        const compatibility = await getModCompatibility(mod.name);
+
+                        // Actualizar la tarjeta con la información de compatibilidad
+                        if (compatibility) {
+                            const compatibilityElement = modCard.querySelector('.mod-compatibility');
+                            if (compatibilityElement) {
+                                compatibilityElement.innerHTML = `
+                                    <div class="d-flex gap-2">
+                                        ${getCompatibilityIcon('client', compatibility.client_side)}
+                                        ${getCompatibilityIcon('server', compatibility.server_side)}
+                                        <small class="text-muted">${compatibility.title}</small>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error procesando mod ${mod.name}:`, error);
+                    }
+                }
+
+                // Eliminar el indicador de carga
+                loadingElement.remove();
+
+            } catch (error) {
+                console.error('Error en processLocalMods:', error);
+                const errorElement = document.createElement('div');
+                errorElement.className = 'alert alert-danger';
+                errorElement.textContent = 'Error al procesar los mods locales. Por favor, inténtalo de nuevo.';
+                document.getElementById('localModsList').appendChild(errorElement);
+            }
+        }
 
         // Función para obtener la información de compatibilidad de un mod
         async function getModCompatibility(modName) {
