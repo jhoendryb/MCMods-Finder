@@ -352,24 +352,39 @@
                 const files = Array.from(event.target.files);
                 const modsComparison = document.getElementById('modsComparison');
 
-                console.log('Archivos seleccionados:', files); // Debug
+                console.log('Archivos seleccionados:', files.map(f => f.name)); // Debug
 
-                // Filtrar solo archivos .jar
+                // Filtrar solo archivos .jar (case insensitive)
                 localMods = files
                     .filter(file => {
-                        const isJar = file.name.toLowerCase().endsWith('.jar');
-                        console.log(`Archivo: ${file.name}, ¿es .jar?: ${isJar}`); // Debug
+                        const fileName = file.name.toLowerCase();
+                        const isJar = fileName.endsWith('.jar');
+                        console.log(`Procesando archivo: ${file.name}, ¿es .jar?: ${isJar}`);
                         return isJar;
                     })
-                    .map((file, index) => ({
-                        id: `mod-${Date.now()}-${index}`,
-                        name: file.name.replace(/\.jar$/i, '').replace(/[_-]/g, ' ').replace(/\d+/g, ' ').replace(/\s+/g, ' ').trim(),
-                        fileName: file.name,
-                        path: file.webkitRelativePath || file.name,
-                        file: file  // Guardar la referencia al archivo
-                    }));
+                    .map((file, index) => {
+                        // Extraer el nombre sin la extensión .jar
+                        const nameWithoutExt = file.name.replace(/\.jar$/i, '');
+                        // Limpiar el nombre para mostrar
+                        const cleanName = nameWithoutExt
+                            .replace(/[_-]/g, ' ')  // Reemplazar guiones bajos y medios por espacios
+                            .replace(/\d+/g, ' ')   // Eliminar números
+                            .replace(/\s+/g, ' ')   // Reemplazar múltiples espacios por uno solo
+                            .trim();                // Eliminar espacios al inicio y final
 
-                console.log('Mods procesados:', localMods); // Debug
+                        console.log(`Archivo procesado: ${file.name} -> ${cleanName}`);
+
+                        return {
+                            id: `mod-${Date.now()}-${index}`,
+                            name: cleanName,
+                            originalName: file.name,  // Guardar el nombre original
+                            fileName: file.name,
+                            path: file.webkitRelativePath || file.name,
+                            file: file
+                        };
+                    });
+
+                console.log('Mods procesados:', localMods);
 
                 if (localMods.length > 0) {
                     modsComparison.classList.remove('d-none');
