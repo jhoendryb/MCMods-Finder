@@ -1,4 +1,4 @@
-const modrinthApiSearch = async function (type, params) {
+const modrinthApiParams = async function (type, params) {
     const paramsString = new URLSearchParams();
     Object.keys(params).forEach(element => {
         if (element == "facets") {
@@ -15,17 +15,17 @@ const modrinthApiSearch = async function (type, params) {
     return await fetchApi(urlModrinth);
 };
 
-console.log(modrinthApiSearch("search", {
+console.log(modrinthApiParams("search", {
     facets: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
 }));
 
-const modrinthApiGetProject = async function (type, input) {
+const modrinthApiPath = async function (type, input) {
 
     const urlModrinth = `https://api.modrinth.com/v2/${type}/${input}`;
 
     return await fetchApi(urlModrinth);
 };
 
-console.log(modrinthApiGetProject("search", {
+console.log(modrinthApiPath("search", {
     id: [["project_type:mod"], ["categories:forge"], ["versions:1.20.1"]]
 }));
