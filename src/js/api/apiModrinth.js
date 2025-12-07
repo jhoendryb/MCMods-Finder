@@ -1,5 +1,3 @@
-import { fetchApi } from './apiTempletes';
-
 const modrinthApi = async function (type, params) {
     const paramsString = new URLSearchParams();
     Object.keys(params).forEach(element => {

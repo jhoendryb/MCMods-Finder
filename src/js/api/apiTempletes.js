@@ -33,5 +33,3 @@ function fetchApi(url) {
         .then(response => response.json())
         .then(response => response);
 }
-
-export default { fetchApi, apiTemplete };
