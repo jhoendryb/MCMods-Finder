@@ -1,4 +1,4 @@
-const modrinthApi = function (type, params) {
+const modrinthApi = async function (type, params) {
     const paramsString = new URLSearchParams();
     Object.keys(params).forEach(element => {
         if (element == "facets") {
@@ -12,7 +12,7 @@ const modrinthApi = function (type, params) {
 
     console.log(urlModrinth);
 
-    return fetchApi(urlModrinth);
+    return await fetchApi(urlModrinth);
 };
 
 console.log(await modrinthApi("search", {
