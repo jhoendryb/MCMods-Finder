@@ -551,6 +551,110 @@
             return icons[iconType].unknown;
         }
 
+        // Función para mostrar el modal de búsqueda manual
+        function showManualSearchModal(mod, modElement) {
+            const modalElement = document.getElementById('manualSearchModal');
+            if (!modalElement) {
+                console.error('Modal element not found');
+                return;
+            }
+
+            // Initialize the modal if it hasn't been initialized yet
+            let modal = bootstrap.Modal.getInstance(modalElement);
+            if (!modal) {
+                modal = new bootstrap.Modal(modalElement);
+            }
+
+            const modalTitle = modalElement.querySelector('.modal-title');
+            const searchInput = modalElement.querySelector('input[type="search"]');
+            const searchButton = modalElement.querySelector('.btn-primary');
+            const searchResults = modalElement.querySelector('.modal-body .list-group');
+            const loadingSpinner = modalElement.querySelector('.spinner-border');
+
+            // Set modal title and input value
+            modalTitle.textContent = `Buscar: ${mod.name}`;
+            searchInput.value = mod.name;
+            if (searchResults) searchResults.innerHTML = '';
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+
+            // Show the modal
+            modal.show();
+
+            // Function to perform search
+            const performSearch = async () => {
+                const query = searchInput.value.trim();
+                if (!query) return;
+
+                searchResults.innerHTML = '';
+                loadingSpinner.classList.remove('d-none');
+
+                try {
+                    const results = await modrinthApiParams("search", {
+                        query: query,
+                        limit: 5,
+                        facets: [["project_type:mod"]]
+                    });
+
+                    searchResults.innerHTML = '';
+
+                    if (results.hits?.length > 0) {
+                        results.hits.forEach((mod, index) => {
+                            const modElement = document.createElement('div');
+                            modElement.className = 'list-group-item list-group-item-action';
+                            modElement.dataset.modId = mod.project_id || mod.id;
+                            modElement.dataset.modIndex = index;
+
+                            // Get compatibility info
+                            const compatibility = [];
+                            if (mod.client_side === 'required') compatibility.push('Cliente');
+                            if (mod.server_side === 'required') compatibility.push('Servidor');
+
+                            modElement.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">${mod.title}</h6>
+                                        <small class="text-muted">${mod.description || 'Sin descripción'}</small>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        ${getCompatibilityIcon('client', mod.client_side)}
+                                        ${getCompatibilityIcon('server', mod.server_side)}
+                                    </div>
+                                </div>
+                            `;
+
+                            modElement.addEventListener('click', () => {
+                                // Handle mod selection
+                                console.log('Selected mod:', mod);
+                                // You can add more logic here to handle the selected mod
+                                modal.hide();
+                            });
+
+                            searchResults.appendChild(modElement);
+                        });
+                    } else {
+                        searchResults.innerHTML = '<div class="text-center p-3">No se encontraron resultados</div>';
+                    }
+                } catch (error) {
+                    console.error('Error searching mods:', error);
+                    searchResults.innerHTML = `
+                        <div class="alert alert-danger">
+                            Error al buscar mods. Por favor, inténtalo de nuevo.
+                        </div>
+                    `;
+                } finally {
+                    loadingSpinner.classList.add('d-none');
+                }
+            };
+
+            // Add event listeners
+            searchButton.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+
         // Add CSS styles
         const style = document.createElement('style');
         style.textContent = `
