@@ -306,30 +306,33 @@
 
         // Perform search in the modal
         async function performModSearch(query) {
-            // Get or create the main container
-            let searchResults = document.getElementById('searchResults');
+            // Get the main container
+            const searchResults = document.getElementById('searchResults');
             if (!searchResults) {
                 console.error('searchResults element not found');
                 return;
             }
 
-            // Create a new container for the results
-            const searchResultsContainer = document.createElement('div');
-            searchResultsContainer.id = 'searchResultsContainer';
-            searchResultsContainer.className = 'search-results-container';
+            // Create a temporary container to build our content
+            const tempContainer = document.createElement('div');
 
-            // Clear existing content and add new container
-            searchResults.innerHTML = '';
-            searchResults.appendChild(searchResultsContainer);
-
-            // Show loading state
-            searchResultsContainer.innerHTML = `
-                <div class="text-center p-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Buscando...</span>
+            // Show loading state in the temp container
+            tempContainer.innerHTML = `
+                <div id="searchResultsContainer" class="search-results-container">
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="mt-2">Buscando "${query}" en Modrinth...</p>
                     </div>
-                    <p class="mt-2">Buscando "${query}" en Modrinth...</p>
                 </div>`;
+
+            // Safely replace the content
+            searchResults.innerHTML = '';
+            searchResults.appendChild(tempContainer.firstElementChild);
+
+            // Get the actual container we'll use for results
+            const searchResultsContainer = document.getElementById('searchResultsContainer');
 
             // Hide any existing spinners
             const searchingSpinner = document.getElementById('searchingSpinner');
@@ -339,34 +342,62 @@
                 const results = await modrinthApiParams("search", {
                     query: query,
                     limit: 10,
-                    facets: [["project_type:mod"]],
-                    index: 'relevance'
+                    facets: [["project_type:mod"]]
                 });
 
                 if (results.hits && results.hits.length > 0) {
-                    const resultsContainer = searchResultsContainer;
-                    // Clear existing results but keep the container
-                    while (resultsContainer.firstChild) {
-                        resultsContainer.removeChild(resultsContainer.firstChild);
-                    }
+                    // Clear existing results
+                    searchResultsContainer.innerHTML = '';
 
-                    // Auto-select first result if there's no current selection
-                    const hasExistingSelection = currentModElement && currentModElement.querySelector('.mod-card.border-success');
+                    // Create a document fragment to build our results
+                    const fragment = document.createDocumentFragment();
                     let firstMod = null;
+                    const hasExistingSelection = currentModElement && currentModElement.querySelector('.mod-card.border-success');
+
+                    // Process each search result
                     results.hits.forEach(mod => {
+                        // Create mod data safely
+                        const modData = {
+                            client_side: mod.client_side || 'unknown',
+                            server_side: mod.server_side || 'unknown',
+                            title: (mod.title || 'Sin título').replace(/[\']/g, ''),
+                            project_id: mod.project_id || mod.id || '',
+                            id: mod.id || '',
+                            description: mod.description || '',
+                            downloads: mod.downloads || 0,
+                            follows: mod.follows || 0
+                        };
+
+                        // Create mod element
                         const modElement = document.createElement('div');
                         modElement.className = 'list-group-item list-group-item-action';
+
+                        // Prepare mod data for the button
+                        const modButtonData = JSON.stringify({
+                            client_side: mod.client_side,
+                            server_side: mod.server_side,
+                            title: (mod.title || '').replace(/[\']/g, ''),
+                            project_id: mod.project_id || mod.id,
+                            id: mod.id,
+                            description: mod.description,
+                            downloads: mod.downloads || 0,
+                            follows: mod.follows || 0
+                        }).replace(/'/g, "\\'");
+
+                        // Set innerHTML safely
                         modElement.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="mb-1">${mod.title || 'Sin título'}</h6>
-                                    <small class="text-muted">${mod.description ? mod.description.substring(0, 100) + (mod.description.length > 100 ? '...' : '') : 'Sin descripción'}</small>
+                                    <h6 class="mb-1">${modData.title}</h6>
+                                    <small class="text-muted">${modData.description ?
+                                modData.description.substring(0, 100) +
+                                (modData.description.length > 100 ? '...' : '') : 'Sin descripción'}</small>
                                     <div class="mt-2">
                                         <span class="badge bg-primary me-2">
-                                            <i class="bi bi-download"></i> ${mod.downloads ? mod.downloads.toLocaleString() : '0'}
+                                            <i class="bi bi-download"></i> ${modData.downloads.toLocaleString()}
                                         </span>
                                         <span class="badge bg-secondary">
-                                            <i class="bi bi-star-fill"></i> ${mod.follows ? mod.follows.toLocaleString() : '0'}
+                                            <i class="bi bi-star-fill"></i> ${modData.follows.toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -376,22 +407,37 @@
                                         ${getCompatibilityIcon('server', mod.server_side || 'unknown')}
                                     </div>
                                     <button class="btn btn-sm btn-outline-success select-mod" 
-                                    data-mod='${JSON.stringify({
-                            client_side: mod.client_side,
-                            server_side: mod.server_side,
-                            title: mod.title.replace(/[\']/g, ''),
-                            project_id: mod.project_id || mod.id,
-                            id: mod.id,
-                            description: mod.description,
-                            downloads: mod.downloads,
-                            follows: mod.follows
-                        }).replace(/'/g, "\\'")}'>
+                                        data-mod='${modButtonData}'>
                                         <i class="bi bi-check-lg"></i> Seleccionar
                                     </button>
                                 </div>
                             </div>
                         `;
-                        resultsContainer.appendChild(modElement);
+
+                        // Add click handler for the entire mod element
+                        modElement.addEventListener('click', (e) => {
+                            if (!e.target.closest('.select-mod')) {
+                                const modData = JSON.parse(e.currentTarget.querySelector('.select-mod').dataset.mod);
+                                if (currentModElement && currentMod) {
+                                    updateModWithSelection(modData);
+                                }
+                            }
+                        });
+
+                        // Add click handler for the select button
+                        const selectButton = modElement.querySelector('.select-mod');
+                        if (selectButton) {
+                            selectButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const modData = JSON.parse(e.currentTarget.dataset.mod);
+                                if (currentModElement && currentMod) {
+                                    updateModWithSelection(modData);
+                                }
+                            });
+                        }
+
+                        // Add to fragment
+                        fragment.appendChild(modElement);
 
                         // Store first mod for auto-selection
                         if (!firstMod) {
@@ -399,21 +445,13 @@
                         }
                     });
 
+                    // Append all mods at once
+                    searchResultsContainer.appendChild(fragment);
+
                     // Auto-select first result if no selection exists
                     if (!hasExistingSelection && firstMod) {
                         updateModWithSelection(firstMod.data);
                     }
-
-                    // Add event listeners to select buttons
-                    resultsContainer.querySelectorAll('.select-mod').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const modData = JSON.parse(button.dataset.mod);
-                            if (currentModElement && currentMod) {
-                                updateModWithSelection(modData);
-                            }
-                        });
-                    });
                 } else {
                     const resultsContainer = searchResultsContainer;
                     resultsContainer.innerHTML = `
@@ -744,7 +782,7 @@
                 }
             });
 
-            
+
             // Inicialización de la funcionalidad de comparación
             const modsFolderInput = document.getElementById('modsFolder');
 
@@ -787,7 +825,7 @@
                 processLocalMods(localMods);
             });
 
-            
+
             async function processLocalMods(mods) {
                 const modsContainer = document.getElementById('localModsList');
                 if (!modsContainer) {
