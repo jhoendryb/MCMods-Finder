@@ -244,11 +244,6 @@
     <script src="src/js/api/apiModrinth.js"></script>
 
     <script>
-        // Global variables
-        let manualSearchModal = null;
-        let currentModElement = null;
-        let currentMod = null;
-
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize modal
@@ -562,11 +557,10 @@
             cardElement.querySelector('.mod-card').classList.add('border', 'border-success');
         }
 
-        // Global variables for search functionality
-        let searchInput = null;
-        let searchButton = null;
-        let searchResultsContainer = null;
-        let loadingSpinner = null;
+        // Search functionality variables will be initialized in DOMContentLoaded
+        let currentMod = null;
+        let currentModElement = null;
+        let manualSearchModal = null;
 
         function showLoading(show) {
             const spinner = document.getElementById('loadingSpinner');
@@ -966,206 +960,33 @@
             }
 
             function showManualSearchModal(mod, modElement) {
-                const modalElement = document.getElementById('manualSearchModal');
-                if (!modalElement) {
-                    console.error('Modal element not found');
-                    return;
+                // Store references to the current mod and its element
+                currentMod = mod;
+                currentModElement = modElement;
+
+                // Set the search input value to the mod name
+                const modalSearchInput = document.getElementById('modalSearchInput');
+                if (modalSearchInput) {
+                    modalSearchInput.value = mod.name;
+                    modalSearchInput.focus();
+                    modalSearchInput.select();
                 }
 
-                // Initialize the modal if it hasn't been initialized yet
-                let modal = bootstrap.Modal.getInstance(modalElement);
-                if (!modal) {
-                    modal = new bootstrap.Modal(modalElement);
+                // Clear previous results
+                const resultsContainer = document.getElementById('modalSearchResults');
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = `
+                        <div class="text-center text-muted p-5">
+                            <i class="bi bi-search display-4 opacity-50 mb-3"></i>
+                            <p class="mb-0">Ingresa un término de búsqueda para comenzar</p>
+                        </div>`;
                 }
-
-                const modalTitle = modalElement.querySelector('.modal-title');
-                const modalSearchInput = modalElement.querySelector('input[type="search"]');
-                const modalSearchButton = modalElement.querySelector('.btn-primary');
-                const modalSearchResults = modalElement.querySelector('.modal-body .list-group');
-                const loadingSpinner = modalElement.querySelector('.spinner-border');
-
-                // Set modal title and input value
-                modalTitle.textContent = `Buscar: ${mod.name}`;
-                modalSearchInput.value = mod.name;
-                if (modalSearchResults) modalSearchResults.innerHTML = '';
-                if (loadingSpinner) loadingSpinner.classList.add('d-none');
-
-                // Store references to the mod and its element for later use
-                let currentMod = { ...mod };
-                let currentModElement = modElement;
-
-                // Function to update the mod with selected information
-                const updateModWithSelection = (selectedMod) => {
-                    // Update the mod's compatibility information
-                    currentMod.compatibility = {
-                        client_side: selectedMod.client_side || 'unknown',
-                        server_side: selectedMod.server_side || 'unknown',
-                        title: selectedMod.title || currentMod.name,
-                        mod_id: selectedMod.project_id || selectedMod.id,
-                        verified: true,
-                        mod_info: selectedMod
-                    };
-
-                    // Update the mod card in the UI
-                    const compatibilityElement = currentModElement.querySelector('.mod-compatibility');
-                    if (compatibilityElement) {
-                        compatibilityElement.innerHTML = `
-                            <div class="d-flex align-items-center gap-2">
-                                ${getCompatibilityIcon('client', currentMod.compatibility.client_side)}
-                                ${getCompatibilityIcon('server', currentMod.compatibility.server_side)}
-                                <small class="text-muted">${currentMod.compatibility.title}</small>
-                                <span class="badge bg-success ms-2">Seleccionado</span>
-                            </div>
-                        `;
-                    }
-
-                    // Update the mod's title if it's different
-                    const titleElement = currentModElement.querySelector('.mod-title');
-                    if (titleElement && selectedMod.title && selectedMod.title !== currentMod.name) {
-                        titleElement.textContent = selectedMod.title;
-                    }
-
-                    // Add a visual indicator that this mod has been manually associated
-                    currentModElement.classList.add('border', 'border-success');
-
-                    // Close the modal
-                    modal.hide();
-
-                    // Show a success toast
-                    const toast = new bootstrap.Toast(document.getElementById('toastSuccess'));
-                    const toastBody = document.querySelector('#toastSuccess .toast-body');
-                    if (toastBody) {
-                        toastBody.textContent = `Mod asociado correctamente: ${selectedMod.title || currentMod.name}`;
-                        toast.show();
-                    }
-                };
 
                 // Show the modal
-                modal.show();
-
-                // Function to perform search
-                const performSearch = async () => {
-                    const query = modalSearchInput.value.trim();
-                    if (!query) return;
-
-                    modalSearchResults.innerHTML = '';
-                    loadingSpinner.classList.remove('d-none');
-
-                    try {
-                        const results = await modrinthApiParams("search", {
-                            query: query,
-                            limit: 10, // Mostrar más resultados para mejor selección
-                            facets: [["project_type:mod"]],
-                            index: 'relevance'
-                        });
-
-                        if (results.hits?.length > 0) {
-                            // Mostrar primero las coincidencias exactas
-                            const exactMatches = results.hits.filter(hit =>
-                                hit.title.toLowerCase().includes(query.toLowerCase()) ||
-                                hit.slug.toLowerCase().includes(query.toLowerCase().replace(/[^a-z0-9]/g, '-'))
-                            );
-
-                            const otherMatches = results.hits.filter(hit =>
-                                !exactMatches.some(m => m.id === hit.id)
-                            );
-
-                            const sortedResults = [...exactMatches, ...otherMatches].slice(0, 10);
-
-                            sortedResults.forEach((mod, index) => {
-                                const modElement = document.createElement('div');
-                                modElement.className = 'list-group-item list-group-item-action';
-                                modElement.dataset.modId = mod.project_id || mod.id;
-                                modElement.dataset.modIndex = index;
-
-                                // Get compatibility info
-                                const compatibility = [];
-                                if (mod.client_side === 'required') compatibility.push('Cliente');
-                                if (mod.server_side === 'required') compatibility.push('Servidor');
-
-                                modElement.innerHTML = `
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center">
-                                                <h6 class="mb-1 me-2">${mod.title}</h6>
-                                                <span class="badge ${exactMatches.some(m => m.id === mod.id) ? 'bg-success' : 'bg-secondary'}">
-                                                    ${exactMatches.some(m => m.id === mod.id) ? 'Coincidencia' : 'Relacionado'}
-                                                </span>
-                                            </div>
-                                            <small class="text-muted d-block">${mod.description ? mod.description.substring(0, 100) + (mod.description.length > 100 ? '...' : '') : 'Sin descripción'}</small>
-                                            <div class="mt-1">
-                                                <span class="badge bg-dark me-1">
-                                                    <i class="bi bi-download"></i> ${mod.downloads ? mod.downloads.toLocaleString() : '0'}
-                                                </span>
-                                                <span class="badge bg-dark">
-                                                    <i class="bi bi-star-fill text-warning"></i> ${mod.follows ? mod.follows.toLocaleString() : '0'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex flex-column align-items-end">
-                                            <div class="d-flex gap-2 mb-2">
-                                                ${getCompatibilityIcon('client', mod.client_side)}
-                                                ${getCompatibilityIcon('server', mod.server_side)}
-                                            </div>
-                                            <button class="btn btn-sm btn-outline-success select-mod-btn" data-mod-id="${mod.project_id || mod.id}">
-                                                <i class="bi bi-check-lg"></i> Seleccionar
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
-
-                                // Add click handler for the entire item
-                                modElement.addEventListener('click', (e) => {
-                                    // Only trigger if the click wasn't on the select button
-                                    if (!e.target.closest('.select-mod-btn')) {
-                                        // Open mod details in a new tab
-                                        if (mod.project_id || mod.id) {
-                                            window.open(`https://modrinth.com/mod/${mod.slug || mod.id}`, '_blank');
-                                        }
-                                    }
-                                });
-
-                                // Add click handler for the select button
-                                const selectBtn = modElement.querySelector('.select-mod-btn');
-                                if (selectBtn) {
-                                    selectBtn.addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        updateModWithSelection(mod);
-                                    });
-                                }
-
-                                modalSearchResults.appendChild(modElement);
-                            });
-                        } else {
-                            modalSearchResults.innerHTML = `
-                                <div class="text-center p-4">
-                                    <i class="bi bi-search display-6 text-muted mb-3"></i>
-                                    <p class="mb-0">No se encontraron resultados para "${query}"</p>
-                                    <small class="text-muted">Intenta con otras palabras clave</small>
-                                </div>
-                            `;
-                        }
-                    } catch (error) {
-                        console.error('Error searching mods:', error);
-                        modalSearchResults.innerHTML = `
-                            <div class="alert alert-danger m-3">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                Error al buscar mods. Por favor, inténtalo de nuevo.
-                            </div>
-                        `;
-                    } finally {
-                        loadingSpinner.classList.add('d-none');
-                    }
-                };
-
-                // Add event listeners for modal
-                modalSearchButton.addEventListener('click', performSearch);
-                modalSearchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        performSearch();
-                    }
-                });
-            } // End of showManualSearchModal function
+                if (manualSearchModal) {
+                    manualSearchModal.show();
+                }
+            }
 
             // Create and append the modal HTML
             const modalHTML = `
