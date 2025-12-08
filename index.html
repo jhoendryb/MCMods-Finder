@@ -247,18 +247,18 @@
             const isLocalMod = source === 'local';
 
             // Obtener información de compatibilidad
-            const clientStatus = mod.client_side || 'unknown';
-            const serverStatus = mod.server_side || 'unknown';
+            const clientStatus = mod.client_side || (mod.compatibility?.client_side || 'unknown');
+            const serverStatus = mod.server_side || (mod.compatibility?.server_side || 'unknown');
 
             // Crear elementos de compatibilidad
-            const compatibilityInfo = `
-                <div class="compatibility-info mt-2">
-                    <div class="d-flex align-items-center gap-2">
-                        ${getCompatibilityIcon('client', clientStatus)}
-                        ${getCompatibilityIcon('server', serverStatus)}
-                        <small class="text-muted">${mod.compatibility?.title || ''}</small>
-                    </div>
-                </div>`;
+            const compatibilityInfo = mod.compatibility ? `
+            <div class="compatibility-info mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    ${getCompatibilityIcon('client', mod.compatibility.client_side || clientStatus)}
+                    ${getCompatibilityIcon('server', mod.compatibility.server_side || serverStatus)}
+                    <small class="text-muted">${mod.compatibility.title || ''}</small>
+                </div>
+            </div>` : '';
 
             // Crear botones de acción
             let actionButtons = '';
@@ -275,28 +275,28 @@
             }
 
             card.innerHTML = `
-                <div class="mod-card p-3">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center mb-1">
-                                <h5 class="mod-title mb-0">${modTitle}</h5>
-                                <span class="badge ${isLocalMod ? 'bg-secondary' : 'bg-primary'} ms-2">
-                                    ${isLocalMod ? 'Local' : source}
-                                </span>
-                            </div>
-                            ${mod.fileName ? `<small class="text-muted d-block">${mod.fileName}</small>` : ''}
-                            ${compatibilityInfo}
+            <div class="mod-card p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <h5 class="mod-title mb-0">${modTitle}</h5>
+                            <span class="badge ${isLocalMod ? 'bg-secondary' : 'bg-primary'} ms-2">
+                                ${isLocalMod ? 'Local' : source}
+                            </span>
                         </div>
-                        <div class="d-flex flex-column align-items-end">
-                            ${mod.downloads ? `
-                                <span class="badge bg-primary mb-2">
-                                    <i class="bi bi-download"></i> ${mod.downloads.toLocaleString()}
-                                </span>
-                            ` : ''}
-                            ${actionButtons}
-                        </div>
+                        ${mod.fileName ? `<small class="text-muted d-block">${mod.fileName}</small>` : ''}
+                        ${compatibilityInfo}
+                    </div>
+                    <div class="d-flex flex-column align-items-end">
+                        ${mod.downloads ? `
+                            <span class="badge bg-primary mb-2">
+                                <i class="bi bi-download"></i> ${mod.downloads.toLocaleString()}
+                            </span>
+                        ` : ''}
+                        ${actionButtons}
                     </div>
                 </div>
+            </div>
             `;
 
             // Agregar manejadores de eventos
@@ -338,9 +338,9 @@
                 });
             } else {
                 container.innerHTML = `
-                    <div class="col-12 text-center py-3">
-                        <p>No se encontraron resultados en Modrinth</p>
-                    </div>
+                < div class="col-12 text-center py-3" >
+                    <p>No se encontraron resultados en Modrinth</p>
+                    </ >
                 `;
             }
         }
