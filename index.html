@@ -224,6 +224,48 @@
             performModSearch(mod.name);
         }
 
+        // Get compatibility icon based on type and status
+        function getCompatibilityIcon(type, status) {
+            const icons = {
+                client: {
+                    required: 'bi-laptop',
+                    optional: 'bi-laptop',
+                    unsupported: 'bi-laptop',
+                    unknown: 'bi-question-circle'
+                },
+                server: {
+                    required: 'bi-server',
+                    optional: 'bi-server',
+                    unsupported: 'bi-server',
+                    unknown: 'bi-question-circle'
+                }
+            };
+
+            const colors = {
+                required: 'text-success',
+                optional: 'text-warning',
+                unsupported: 'text-danger',
+                unknown: 'text-muted'
+            };
+
+            const tooltips = {
+                required: 'Requerido',
+                optional: 'Opcional',
+                unsupported: 'No soportado',
+                unknown: 'Desconocido'
+            };
+
+            const icon = icons[type]?.[status] || 'bi-question-circle';
+            const color = colors[status] || 'text-muted';
+            const tooltip = tooltips[status] || 'Estado desconocido';
+
+            return `
+                <span class="compatibility-badge ${color}" data-bs-toggle="tooltip" title="${type === 'client' ? 'Cliente' : 'Servidor'}: ${tooltip}">
+                    <i class="bi ${icon}"></i>
+                    <span class="visually-hidden">${type === 'client' ? 'Cliente' : 'Servidor'}: ${tooltip}</span>
+                </span>`;
+        }
+
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize tooltips
@@ -511,6 +553,8 @@
             // Add success border
             cardElement.querySelector('.mod-card').classList.add('border', 'border-success');
         }
+
+
 
         // Search functionality variables will be initialized in DOMContentLoaded
         let currentMod = null;
