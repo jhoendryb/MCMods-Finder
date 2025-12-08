@@ -306,35 +306,34 @@
 
         // Perform search in the modal
         async function performModSearch(query) {
-            const searchResults = document.getElementById('searchResults');
+            // Get or create the main container
+            let searchResults = document.getElementById('searchResults');
             if (!searchResults) {
                 console.error('searchResults element not found');
                 return;
             }
 
-            // Create or get the container for search results
-            let searchResultsContainer = searchResults.querySelector('#searchResultsContainer');
-            if (!searchResultsContainer) {
-                searchResultsContainer = document.createElement('div');
-                searchResultsContainer.id = 'searchResultsContainer';
-                searchResults.innerHTML = ''; // Clear existing content
-                searchResults.appendChild(searchResultsContainer);
-            }
-            const searchingSpinner = document.getElementById('searchingSpinner');
+            // Create a new container for the results
+            const searchResultsContainer = document.createElement('div');
+            searchResultsContainer.id = 'searchResultsContainer';
+            searchResultsContainer.className = 'search-results-container';
+
+            // Clear existing content and add new container
+            searchResults.innerHTML = '';
+            searchResults.appendChild(searchResultsContainer);
 
             // Show loading state
-            if (searchingSpinner) searchingSpinner.classList.remove('d-none');
+            searchResultsContainer.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Buscando...</span>
+                    </div>
+                    <p class="mt-2">Buscando "${query}" en Modrinth...</p>
+                </div>`;
 
-            // Clear previous results
-            if (searchResultsContainer) {
-                searchResultsContainer.innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Buscando...</span>
-                        </div>
-                        <p class="mt-2">Buscando "${query}" en Modrinth...</p>
-                    </div>`;
-            }
+            // Hide any existing spinners
+            const searchingSpinner = document.getElementById('searchingSpinner');
+            if (searchingSpinner) searchingSpinner.classList.add('d-none');
 
             try {
                 const results = await modrinthApiParams("search", {
