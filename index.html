@@ -244,6 +244,34 @@
     <script src="src/js/api/apiModrinth.js"></script>
 
     <script>
+        function showManualSearchModal(mod, modElement) {
+            // Store references to the current mod and its element
+            currentMod = mod;
+            currentModElement = modElement;
+
+            // Set the search input value to the mod name
+            const modalSearchInput = document.getElementById('modalSearchInput');
+            if (modalSearchInput) {
+                modalSearchInput.value = mod.name;
+                modalSearchInput.focus();
+                modalSearchInput.select();
+            }
+
+            // Clear previous results
+            const resultsContainer = document.getElementById('modalSearchResults');
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
+                        <div class="text-center text-muted p-5">
+                            <i class="bi bi-search display-4 opacity-50 mb-3"></i>
+                            <p class="mb-0">Ingresa un término de búsqueda para comenzar</p>
+                        </div>`;
+            }
+
+            // Show the modal
+            if (manualSearchModal) {
+                manualSearchModal.show();
+            }
+        }
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize modal
@@ -957,35 +985,6 @@
                     title: modName,
                     verified: false
                 };
-            }
-
-            function showManualSearchModal(mod, modElement) {
-                // Store references to the current mod and its element
-                currentMod = mod;
-                currentModElement = modElement;
-
-                // Set the search input value to the mod name
-                const modalSearchInput = document.getElementById('modalSearchInput');
-                if (modalSearchInput) {
-                    modalSearchInput.value = mod.name;
-                    modalSearchInput.focus();
-                    modalSearchInput.select();
-                }
-
-                // Clear previous results
-                const resultsContainer = document.getElementById('modalSearchResults');
-                if (resultsContainer) {
-                    resultsContainer.innerHTML = `
-                        <div class="text-center text-muted p-5">
-                            <i class="bi bi-search display-4 opacity-50 mb-3"></i>
-                            <p class="mb-0">Ingresa un término de búsqueda para comenzar</p>
-                        </div>`;
-                }
-
-                // Show the modal
-                if (manualSearchModal) {
-                    manualSearchModal.show();
-                }
             }
 
             // Create and append the modal HTML
