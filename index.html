@@ -488,15 +488,16 @@
                                         ${getCompatibilityIcon('client', mod.client_side || 'unknown')}
                                         ${getCompatibilityIcon('server', mod.server_side || 'unknown')}
                                     </div>
-                                    <button class="btn btn-sm btn-outline-success select-mod" data-mod='${JSON.stringify({
-                            client_side: mod.client_side,
-                            server_side: mod.server_side,
-                            title: mod.title,
-                            project_id: mod.project_id || mod.id,
-                            id: mod.id,
-                            description: mod.description,
-                            downloads: mod.downloads,
-                            follows: mod.follows
+                                    <button class="btn btn-sm btn-outline-success select-mod" 
+                                    data-mod='${JSON.stringify({
+                            client_side: `${mod.client_side}`,
+                            server_side: `${mod.server_side}`,
+                            title: `${mod.title}`,
+                            project_id: mod.project_id || `${mod.id}`,
+                            id: `${mod.id}`,
+                            description: `${mod.description}`,
+                            downloads: `${mod.downloads}`,
+                            follows: `${mod.follows}`
                         }).replace(/'/g, "\\'")}'>
                                         <i class="bi bi-check-lg"></i> Seleccionar
                                     </button>
