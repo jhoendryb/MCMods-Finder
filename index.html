@@ -306,23 +306,34 @@
 
         // Perform search in the modal
         async function performModSearch(query) {
-            const searchResults = document.getElementById('searchResults');
-            const searchResultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
-            const searchingSpinner = document.getElementById('searchingSpinner');
+            // Get or create the main container
+            let searchResults = document.getElementById('searchResults');
+            if (!searchResults) {
+                console.error('searchResults element not found');
+                return;
+            }
+
+            // Create a new container for the results
+            const searchResultsContainer = document.createElement('div');
+            searchResultsContainer.id = 'searchResultsContainer';
+            searchResultsContainer.className = 'search-results-container';
+
+            // Clear existing content and add new container
+            searchResults.innerHTML = '';
+            searchResults.appendChild(searchResultsContainer);
 
             // Show loading state
-            if (searchingSpinner) searchingSpinner.classList.remove('d-none');
+            searchResultsContainer.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Buscando...</span>
+                    </div>
+                    <p class="mt-2">Buscando "${query}" en Modrinth...</p>
+                </div>`;
 
-            // Clear previous results
-            if (searchResultsContainer) {
-                searchResultsContainer.innerHTML = `
-                    <div class="text-center p-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Buscando...</span>
-                        </div>
-                        <p class="mt-2">Buscando "${query}" en Modrinth...</p>
-                    </div>`;
-            }
+            // Hide any existing spinners
+            const searchingSpinner = document.getElementById('searchingSpinner');
+            if (searchingSpinner) searchingSpinner.classList.add('d-none');
 
             try {
                 const results = await modrinthApiParams("search", {
@@ -334,7 +345,10 @@
 
                 if (results.hits && results.hits.length > 0) {
                     const resultsContainer = searchResultsContainer;
-                    resultsContainer.innerHTML = '';
+                    // Clear existing results but keep the container
+                    while (resultsContainer.firstChild) {
+                        resultsContainer.removeChild(resultsContainer.firstChild);
+                    }
 
                     // Auto-select first result if there's no current selection
                     const hasExistingSelection = currentModElement && currentModElement.querySelector('.mod-card.border-success');
@@ -391,7 +405,7 @@
                     }
 
                     // Add event listeners to select buttons
-                    document.querySelectorAll('.select-mod').forEach(button => {
+                    resultsContainer.querySelectorAll('.select-mod').forEach(button => {
                         button.addEventListener('click', (e) => {
                             e.stopPropagation();
                             const modData = JSON.parse(button.dataset.mod);
@@ -738,6 +752,11 @@
                 const files = Array.from(event.target.files);
                 const modsComparison = document.getElementById('modsComparison');
 
+                // Mostrar la sección de comparación
+                if (modsComparison) {
+                    modsComparison.classList.remove('d-none');
+                }
+
                 console.log('Archivos seleccionados:', files.map(f => f.name)); // Debug
 
                 // Filtrar solo archivos .jar (case insensitive)
@@ -769,25 +788,33 @@
 
             
             async function processLocalMods(mods) {
+                const modsContainer = document.getElementById('localModsList');
+                if (!modsContainer) {
+                    console.error('localModsList element not found');
+                    return;
+                }
+
+                // Clear previous results
+                modsContainer.innerHTML = '';
+
+                // Show loading state
+                const loadingElement = document.createElement('div');
+                loadingElement.className = 'text-center my-4';
+                loadingElement.innerHTML = `
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Procesando ${mods.length} mods...</p>
+                `;
+                modsContainer.appendChild(loadingElement);
+
+                // Process each mod
+                const modCards = [];
+
                 try {
-                    const modsContainer = document.getElementById('localModsList');
-                    modsContainer.innerHTML = ''; // Limpiar resultados anteriores
-
-                    // Mostrar loading
-                    const loadingElement = document.createElement('div');
-                    loadingElement.className = 'text-center my-4';
-                    loadingElement.innerHTML = `
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2">Procesando ${mods.length} mods...</p>
-                    `;
-                    modsContainer.appendChild(loadingElement);
-
-                    // Procesar cada mod
                     for (const mod of mods) {
                         try {
-                            // Establecer compatibilidad por defecto basada en el nombre del archivo
+                            // Set default compatibility based on filename
                             mod.compatibility = {
                                 client_side: 'unknown',
                                 server_side: 'unknown',
@@ -795,7 +822,7 @@
                                 verified: false
                             };
 
-                            // Intentar adivinar la compatibilidad basada en el nombre
+                            // Try to guess compatibility based on filename
                             const lowerName = mod.name.toLowerCase();
                             if (lowerName.includes('client') || lowerName.includes('cliente')) {
                                 mod.compatibility.client_side = 'required';
@@ -811,50 +838,68 @@
                                 mod.compatibility.title = 'Probablemente ambos lados';
                             }
 
-                            // Crear tarjeta para el mod con la información inicial
+                            // Create mod card with initial information
                             const modCard = createModCard({
                                 ...mod,
                                 compatibility: mod.compatibility
                             }, 'local');
 
-                            modsContainer.appendChild(modCard);
-
-                            // Obtener información de compatibilidad real en segundo plano
-                            getModCompatibility(mod.name).then(compatibility => {
-                                if (compatibility) {
-                                    // Actualizar la tarjeta con la información real
-                                    const compatibilityElement = modCard.querySelector('.mod-compatibility');
-                                    if (compatibilityElement) {
-                                        compatibility.verified = true;
-                                        mod.compatibility = compatibility;
-                                        compatibilityElement.innerHTML = `
-                                    <div class="d-flex align-items-center gap-2">
-                                        ${getCompatibilityIcon('client', compatibility.client_side)}
-                                        ${getCompatibilityIcon('server', compatibility.server_side)}
-                                        <small class="text-muted">${compatibility.title}</small>
-                                        <span class="badge bg-success ms-2">Verificado</span>
-                                    </div>
-                                `;
-                                    }
+                            // Add click handler to show search results
+                            modCard.addEventListener('click', (e) => {
+                                if (!e.target.closest('.select-mod')) { // Don't trigger if clicking on select button
+                                    showSearchResults(mod, modCard);
                                 }
-                            }).catch(error => {
-                                console.error(`Error obteniendo compatibilidad para ${mod.name}:`, error);
                             });
+
+                            modsContainer.appendChild(modCard);
+                            modCards.push({ mod, element: modCard });
+
+                            // Get real compatibility info in background
+                            getModCompatibility(mod.name)
+                                .then(compatibility => updateModCompatibility(modCard, mod, compatibility))
+                                .catch(error => {
+                                    console.error(`Error getting compatibility for ${mod.name}:`, error);
+                                });
+
                         } catch (error) {
-                            console.error(`Error procesando mod ${mod.name}:`, error);
+                            console.error(`Error processing mod ${mod.name}:`, error);
                         }
                     }
-
-                    // Eliminar el indicador de carga
-                    loadingElement.remove();
-
                 } catch (error) {
-                    console.error('Error en processLocalMods:', error);
-                    const errorElement = document.createElement('div');
-                    errorElement.className = 'alert alert-danger';
-                    errorElement.textContent = 'Error al procesar los mods locales. Por favor, inténtalo de nuevo.';
-                    document.getElementById('localModsList').appendChild(errorElement);
+                    console.error('Error in mod processing loop:', error);
+                } finally {
+                    // Remove loading indicator if it still exists
+                    if (modsContainer.contains(loadingElement)) {
+                        modsContainer.removeChild(loadingElement);
+                    }
                 }
+
+                // If no mods were processed, show a message
+                if (modsContainer.children.length === 0) {
+                    const noModsElement = document.createElement('div');
+                    noModsElement.className = 'text-center text-muted p-4';
+                    noModsElement.textContent = 'No se encontraron archivos .jar en la carpeta seleccionada.';
+                    modsContainer.appendChild(noModsElement);
+                }
+            }
+
+            function updateModCompatibility(modCard, mod, compatibility) {
+                if (!compatibility || !document.body.contains(modCard)) return;
+
+                const compatibilityElement = modCard.querySelector('.mod-compatibility');
+                if (!compatibilityElement) return;
+
+                compatibility.verified = true;
+                mod.compatibility = compatibility;
+
+                compatibilityElement.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        ${getCompatibilityIcon('client', compatibility.client_side || 'unknown')}
+                        ${getCompatibilityIcon('server', compatibility.server_side || 'unknown')}
+                        <small class="text-muted">${compatibility.title || 'No verificado'}</small>
+                        <span class="badge bg-success ms-2">Verificado</span>
+                    </div>
+                `;
             }
 
             async function getModCompatibility(modName) {
