@@ -800,6 +800,26 @@
                 });
             } // End of showManualSearchModal function
 
+            // Function to get compatibility icon HTML
+            function getCompatibilityIcon(type, compatibility) {
+                const icon = type === 'client' ? 'bi-display' : 'bi-hdd-rack';
+                let color = 'text-secondary';
+                let tooltip = 'Desconocido';
+
+                if (compatibility === 'required') {
+                    color = 'text-success';
+                    tooltip = 'Requerido';
+                } else if (compatibility === 'optional') {
+                    color = 'text-warning';
+                    tooltip = 'Opcional';
+                } else if (compatibility === 'unsupported') {
+                    color = 'text-danger';
+                    tooltip = 'No soportado';
+                }
+
+                return `<i class="bi ${icon} ${color}" title="${type === 'client' ? 'Cliente' : 'Servidor'}: ${tooltip}"></i>`;
+            }
+
             // Create and append the modal HTML
             const modalHTML = `
             <div class="modal fade" id="manualSearchModal" tabindex="-1" aria-labelledby="manualSearchModalLabel" aria-hidden="true">
