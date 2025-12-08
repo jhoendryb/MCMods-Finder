@@ -202,26 +202,64 @@
     <script src="src/js/api/apiModrinth.js"></script>
 
     <script>
-        function showSearchResults(mod, modElement) {
+        function showSearchResults(mod, modElement, searchQuery = null) {
             // Store references to the current mod and its element
             currentMod = mod;
             currentModElement = modElement;
 
+            // Use provided search query or mod name
+            const searchTerm = searchQuery || mod.name;
+
             // Clear and show search results section
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = `
-                <div class="text-center p-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Buscando...</span>
+                <div class="p-3 border-bottom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-white border-secondary">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="searchModInput" class="form-control bg-dark text-white border-secondary" 
+                               value="${searchTerm}" placeholder="Buscar mod...">
+                        <button class="btn btn-outline-secondary" type="button" id="updateSearchBtn">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                        </button>
                     </div>
-                    <p class="mt-2">Buscando "${mod.name}" en Modrinth...</p>
+                    <div class="mt-2 text-muted small">
+                        Buscando para: <strong>${mod.name}</strong>
+                    </div>
+                </div>
+                <div id="searchResultsContainer" class="p-3">
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="mt-2">Buscando "${searchTerm}" en Modrinth...</p>
+                    </div>
                 </div>`;
 
             // Show the comparison section if hidden
             document.getElementById('modsComparison').classList.remove('d-none');
 
+            // Add event listener for search update
+            document.getElementById('updateSearchBtn').addEventListener('click', () => {
+                const newSearch = document.getElementById('searchModInput').value.trim();
+                if (newSearch) {
+                    showSearchResults(mod, modElement, newSearch);
+                }
+            });
+
+            // Also update on Enter key
+            document.getElementById('searchModInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newSearch = document.getElementById('searchModInput').value.trim();
+                    if (newSearch) {
+                        showSearchResults(mod, modElement, newSearch);
+                    }
+                }
+            });
+
             // Perform the search
-            performModSearch(mod.name);
+            performModSearch(searchTerm);
         }
 
         // Get compatibility icon based on type and status
@@ -266,156 +304,22 @@
                 </span>`;
         }
 
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-
-            // Initialize search elements
-            searchInput = document.getElementById("searchInput");
-            searchButton = document.getElementById("searchButton");
-            searchResultsContainer = document.getElementById("searchResults");
-            loadingSpinner = document.querySelector("#searchButton .spinner-border");
-
-            if (!searchInput || !searchButton) {
-                console.error('Required search elements not found');
-                return;
-            }
-
-            // Buscar al hacer clic en el botón
-            searchButton.addEventListener("click", performSearch);
-
-            // Buscar al presionar Enter en el input
-            searchInput.addEventListener("keyup", function (event) {
-                if (event.key === "Enter") {
-                    performSearch();
-                }
-            });
-
-            // Búsqueda con debounce para no hacer muchas llamadas mientras se escribe
-            let searchTimeout;
-            searchInput.addEventListener("input", function () {
-                clearTimeout(searchTimeout);
-                if (this.value.length > 2) {
-                    searchTimeout = setTimeout(performSearch, 800);
-                }
-            });
-
-            // Inicialización de la funcionalidad de comparación
-            const modsFolderInput = document.getElementById('modsFolder');
-
-            // Manejar selección de archivos
-            modsFolderInput.addEventListener('change', async (event) => {
-                const files = Array.from(event.target.files);
-                const modsComparison = document.getElementById('modsComparison');
-
-                console.log('Archivos seleccionados:', files.map(f => f.name)); // Debug
-
-                // Filtrar solo archivos .jar (case insensitive)
-                localMods = files
-                    .filter(file => {
-                        const fileName = file.name.toLowerCase();
-                        const isJar = fileName.endsWith('.jar');
-                        console.log(`Procesando archivo: ${file.name}, ¿es .jar?: ${isJar}`);
-                        return isJar;
-                    })
-                    .map((file, index) => {
-                        // Extraer el nombre sin la extensión .jar
-                        const nameWithoutExt = file.name.replace(/\.jar$/i, '');
-                        // Limpiar el nombre para mostrar
-                        const cleanName = nameWithoutExt
-                            .replace(/[_-]/g, ' ')  // Reemplazar guiones bajos y medios por espacios
-                            .replace(/\./g, ' ')    // Reemplazar puntos por espacios
-                            .replace(/\d+/g, ' ')   // Eliminar números
-                        return {
-                            name: cleanName,
-                            file: file,
-                            id: index
-                        };
-                    });
-
-                // Procesar los mods locales
-                processLocalMods(localMods);
-            });
-
-            async function processLocalMods(mods) {
-                try {
-                    const modsContainer = document.getElementById('localModsList');
-                    modsContainer.innerHTML = ''; // Limpiar resultados anteriores
-
-                    // Mostrar loading
-                    const loadingElement = document.createElement('div');
-                    loadingElement.className = 'text-center my-4';
-                    loadingElement.innerHTML = `
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2">Procesando ${mods.length} mods...</p>
-                    `;
-                    modsContainer.appendChild(loadingElement);
-
-                    // Procesar cada mod
-                    for (const mod of mods) {
-                        try {
-                            // Establecer compatibilidad por defecto basada en el nombre del archivo
-                            mod.compatibility = {
-                                client_side: 'unknown',
-                                server_side: 'unknown',
-                                title: 'No verificado',
-                                verified: false
-                            };
-
-                            // Crear tarjeta del mod
-                            const modCard = createModCard(mod, 'local');
-                            modsContainer.appendChild(modCard);
-
-                            // Agregar manejador de evento para buscar el mod
-                            const searchBtn = modCard.querySelector('.search-mod');
-                            if (searchBtn) {
-                                searchBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    showSearchResults(mod, modCard);
-                                });
-                            }
-
-                            // Hacer toda la tarjeta clickeable para mods locales
-                            modCard.style.cursor = 'pointer';
-                            modCard.addEventListener('click', () => {
-                                showSearchResults(mod, modCard);
-                            });
-                        } catch (error) {
-                            console.error('Error procesando mod:', error);
-                        }
-                    }
-
-                    // Quitar loading
-                    modsContainer.removeChild(loadingElement);
-
-                    // Mostrar sección de comparación
-                    document.getElementById('modsComparison').classList.remove('d-none');
-                } catch (error) {
-                    console.error('Error procesando mods:', error);
-                }
-            }
-        });
-
         // Perform search in the modal
         async function performModSearch(query) {
-            const searchResults = document.getElementById('searchResults');
+            const searchResultsContainer = document.getElementById('searchResultsContainer') || document.getElementById('searchResults');
             const searchingSpinner = document.getElementById('searchingSpinner');
 
             // Show loading state
             searchingSpinner.classList.remove('d-none');
-            searchResults.innerHTML = `
-                <div class="text-center p-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Buscando...</span>
-                    </div>
-                    <p class="mt-2">Buscando "${query}" en Modrinth...</p>
-                </div>`;
+            if (searchResultsContainer) {
+                searchResultsContainer.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="mt-2">Buscando "${query}" en Modrinth...</p>
+                    </div>`;
+            }
 
             try {
                 const results = await modrinthApiParams("search", {
@@ -426,7 +330,12 @@
                 });
 
                 if (results.hits && results.hits.length > 0) {
-                    searchResults.innerHTML = '';
+                    const resultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
+                    resultsContainer.innerHTML = '';
+
+                    // Auto-select first result if there's no current selection
+                    const hasExistingSelection = currentModElement && currentModElement.querySelector('.mod-card.border-success');
+                    let firstMod = null;
                     results.hits.forEach(mod => {
                         const modElement = document.createElement('div');
                         modElement.className = 'list-group-item list-group-item-action';
@@ -465,8 +374,18 @@
                                 </div>
                             </div>
                         `;
-                        searchResults.appendChild(modElement);
+                        resultsContainer.appendChild(modElement);
+
+                        // Store first mod for auto-selection
+                        if (!firstMod) {
+                            firstMod = { element: modElement, data: mod };
+                        }
                     });
+
+                    // Auto-select first result if no selection exists
+                    if (!hasExistingSelection && firstMod) {
+                        updateModWithSelection(firstMod.data);
+                    }
 
                     // Add event listeners to select buttons
                     document.querySelectorAll('.select-mod').forEach(button => {
@@ -479,7 +398,8 @@
                         });
                     });
                 } else {
-                    searchResults.innerHTML = `
+                    const resultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
+                    resultsContainer.innerHTML = `
                         <div class="text-center p-4">
                             <i class="bi bi-search display-4 opacity-50 mb-3"></i>
                             <p class="mb-0">No se encontraron resultados para "${query}"</p>
@@ -528,6 +448,7 @@
         // Update mod card with new data
         function updateModCard(cardElement, mod) {
             const titleElement = cardElement.querySelector('.mod-title');
+            const originalNameElement = cardElement.querySelector('.original-name') || document.createElement('div');
             const compatibilityElement = cardElement.querySelector('.compatibility-info') || document.createElement('div');
 
             if (!compatibilityElement.classList.contains('compatibility-info')) {
@@ -535,9 +456,22 @@
                 cardElement.querySelector('.mod-card').appendChild(compatibilityElement);
             }
 
-            // Update title if available
-            if (titleElement && mod.compatibility.title) {
-                titleElement.textContent = mod.compatibility.title;
+            // Add or update original name display
+            if (!cardElement.querySelector('.original-name')) {
+                originalNameElement.className = 'original-name small text-muted';
+                const modCard = cardElement.querySelector('.mod-card');
+                if (modCard) {
+                    modCard.insertBefore(originalNameElement, compatibilityElement);
+                }
+            }
+
+            // Show both original and matched mod names
+            if (titleElement) {
+                const originalName = mod.name || 'Mod sin nombre';
+                const matchedName = mod.compatibility.title || '';
+
+                titleElement.textContent = matchedName || originalName;
+                originalNameElement.textContent = matchedName ? `Original: ${originalName}` : '';
             }
 
             // Update compatibility info
