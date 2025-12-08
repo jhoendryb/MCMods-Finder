@@ -306,11 +306,14 @@
 
         // Perform search in the modal
         async function performModSearch(query) {
-            const searchResultsContainer = document.getElementById('searchResultsContainer') || document.getElementById('searchResults');
+            const searchResults = document.getElementById('searchResults');
+            const searchResultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
             const searchingSpinner = document.getElementById('searchingSpinner');
 
             // Show loading state
-            searchingSpinner.classList.remove('d-none');
+            if (searchingSpinner) searchingSpinner.classList.remove('d-none');
+
+            // Clear previous results
             if (searchResultsContainer) {
                 searchResultsContainer.innerHTML = `
                     <div class="text-center p-4">
@@ -330,7 +333,7 @@
                 });
 
                 if (results.hits && results.hits.length > 0) {
-                    const resultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
+                    const resultsContainer = searchResultsContainer;
                     resultsContainer.innerHTML = '';
 
                     // Auto-select first result if there's no current selection
@@ -398,7 +401,7 @@
                         });
                     });
                 } else {
-                    const resultsContainer = searchResults.querySelector('#searchResultsContainer') || searchResults;
+                    const resultsContainer = searchResultsContainer;
                     resultsContainer.innerHTML = `
                         <div class="text-center p-4">
                             <i class="bi bi-search display-4 opacity-50 mb-3"></i>
@@ -408,13 +411,14 @@
                 }
             } catch (error) {
                 console.error('Error searching mods:', error);
-                searchResults.innerHTML = `
+                const resultsContainer = searchResultsContainer;
+                resultsContainer.innerHTML = `
                     <div class="alert alert-danger m-3">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         Error al buscar mods. Por favor, inténtalo de nuevo.
                     </div>`;
             } finally {
-                searchingSpinner.classList.add('d-none');
+                if (searchingSpinner) searchingSpinner.classList.add('d-none');
             }
         }
 
