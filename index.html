@@ -196,8 +196,10 @@
 
     <script>
         // Global variables for search functionality
-        let searchInput;
-        let searchButton;
+        let searchInput = null;
+        let searchButton = null;
+        let searchResultsContainer = null;
+        let loadingSpinner = null;
 
         function showLoading(show) {
             const spinner = document.getElementById('loadingSpinner');
@@ -363,6 +365,11 @@
         }
 
         function performSearch() {
+            if (!searchInput) {
+                console.error('Search input not initialized');
+                return;
+            }
+
             const searchTerm = searchInput.value.trim();
 
             if (searchTerm.length < 2) {
@@ -377,12 +384,20 @@
             document.getElementById("result-forge").innerHTML = '';
             document.getElementById("result-commentForge").innerHTML = '';
 
+            // Show loading state
+            if (loadingSpinner) {
+                loadingSpinner.classList.remove('d-none');
+            }
+
             // Realizar búsquedas en paralelo
             Promise.all([
                 searchModrinth(searchTerm).then(printJSONModrinth),
                 searchForge(searchTerm).then(printJSONForge)
             ]).finally(() => {
                 showLoading(false);
+                if (loadingSpinner) {
+                    loadingSpinner.classList.add('d-none');
+                }
             });
         }
 
@@ -391,6 +406,13 @@
             // Initialize search elements
             searchInput = document.getElementById("searchInput");
             searchButton = document.getElementById("searchButton");
+            searchResultsContainer = document.getElementById("searchResults");
+            loadingSpinner = document.querySelector("#searchButton .spinner-border");
+
+            if (!searchInput || !searchButton) {
+                console.error('Required search elements not found');
+                return;
+            }
 
             // Buscar al hacer clic en el botón
             searchButton.addEventListener("click", performSearch);
