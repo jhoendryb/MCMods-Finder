@@ -851,7 +851,7 @@
                 const modCards = [];
 
                 try {
-                    for (const mod of mods) {
+                    mods.forEach((mod, index) => {
                         try {
                             // Set default compatibility based on filename
                             mod.compatibility = {
@@ -893,15 +893,15 @@
                             modsContainer.appendChild(modCard);
                             modCards.push({ mod, element: modCard });
 
-                            // Automatically trigger search for this mod
+                            // Automatically trigger search for this mod with incremental delay
                             setTimeout(() => {
                                 showSearchResults(mod, modCard);
-                            }, 500); // Small delay to avoid overwhelming the API
+                            }, 500 * (index + 1)); // Incremental delay: 500ms, 1000ms, 1500ms, etc.
 
                         } catch (error) {
                             console.error(`Error processing mod ${mod.name}:`, error);
                         }
-                    }
+                    });
                 } catch (error) {
                     console.error('Error in mod processing loop:', error);
                 } finally {
