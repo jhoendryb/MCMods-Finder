@@ -464,7 +464,7 @@
                         <div class="text-center p-4">
                             <i class="bi bi-search display-4 opacity-50 mb-3"></i>
                             <p class="mb-0">No se encontraron resultados para "${query}"</p>
-                            <small class="text-muted">Intenta con otras palabras clave</small>
+                            <small class="text-muted">Intenta editando el término de búsqueda arriba</small>
                         </div>`;
                 }
             } catch (error) {
@@ -780,13 +780,14 @@
             });
 
             // Búsqueda con debounce para no hacer muchas llamadas mientras se escribe
-            let searchTimeout;
-            searchInput.addEventListener("input", function () {
-                clearTimeout(searchTimeout);
-                if (this.value.length > 2) {
-                    searchTimeout = setTimeout(performSearch, 800);
-                }
-            });
+            // DESACTIVO ESTO PARA PODER HACER PRUEBAS MAS RAPIDO, NO LO TOQUES
+            // let searchTimeout;
+            // searchInput.addEventListener("input", function () {
+            //     clearTimeout(searchTimeout);
+            //     if (this.value.length > 2) {
+            //         searchTimeout = setTimeout(performSearch, 800);
+            //     }
+            // });
 
 
             // Inicialización de la funcionalidad de comparación
