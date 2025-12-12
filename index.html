@@ -782,14 +782,13 @@
             });
 
             // Búsqueda con debounce para no hacer muchas llamadas mientras se escribe
-            // DESACTIVO ESTO PARA PODER HACER PRUEBAS MAS RAPIDO, NO LO TOQUES
-            // let searchTimeout;
-            // searchInput.addEventListener("input", function () {
-            //     clearTimeout(searchTimeout);
-            //     if (this.value.length > 2) {
-            //         searchTimeout = setTimeout(performSearch, 800);
-            //     }
-            // });
+            let searchTimeout;
+            searchInput.addEventListener("input", function () {
+                clearTimeout(searchTimeout);
+                if (this.value.length > 2) {
+                    searchTimeout = setTimeout(performSearch, 800);
+                }
+            });
 
 
             // Inicialización de la funcionalidad de comparación
@@ -903,9 +902,10 @@
                             modCards.push({ mod, element: modCard });
 
                             // Automatically trigger search for this mod with incremental delay
-                            setTimeout(() => {
-                                showSearchResults(mod, modCard);
-                            }, 500 * (index + 1)); // Incremental delay: 500ms, 1000ms, 1500ms, etc.
+                            // DESACTIVO ESTO PARA PODER HACER PRUEBAS MAS RAPIDO, NO LO TOQUES
+                            // setTimeout(() => {
+                            //     showSearchResults(mod, modCard);
+                            // }, 500 * (index + 1)); // Incremental delay: 500ms, 1000ms, 1500ms, etc.
 
                         } catch (error) {
                             console.error(`Error processing mod ${mod.name}:`, error);
