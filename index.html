@@ -213,19 +213,25 @@
             // Clear and show search results section
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = `
-                <div class="p-3 border-bottom">
+                <div class="p-3 border-bottom bg-secondary bg-opacity-25">
+                    <div class="mb-2">
+                        <small class="text-muted">Mod seleccionado:</small>
+                        <div class="fw-bold text-white">${mod.name}</div>
+                    </div>
                     <div class="input-group">
                         <span class="input-group-text bg-dark text-white border-secondary">
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" id="searchModInput" class="form-control bg-dark text-white border-secondary" 
-                               value="${searchTerm}" placeholder="Buscar mod...">
-                        <button class="btn btn-outline-secondary" type="button" id="updateSearchBtn">
-                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            value="${searchTerm}" placeholder="Editar término de búsqueda...">
+                        <button class="btn btn-primary" type="button" id="updateSearchBtn">
+                            <i class="bi bi-search"></i> Buscar
                         </button>
                     </div>
-                    <div class="mt-2 text-muted small">
-                        Buscando para: <strong>${mod.name}</strong>
+                    <div class="mt-2">
+                        <small class="text-info">
+                            <i class="bi bi-info-circle"></i> Puedes editar el término de búsqueda si el resultado no es correcto
+                        </small>
                     </div>
                 </div>
                 <div id="searchResultsContainer" class="p-3">
