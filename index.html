@@ -319,26 +319,28 @@
                 return;
             }
 
-            // Create a temporary container to build our content
-            const tempContainer = document.createElement('div');
+            // Don't replace the entire content, just update the results container
+            // Find or create the results container
+            let searchResultsContainer = document.getElementById('searchResultsContainer');
+            if (!searchResultsContainer) {
+                // If it doesn't exist, create it and append to searchResults
+                searchResultsContainer = document.createElement('div');
+                searchResultsContainer.id = 'searchResultsContainer';
+                searchResultsContainer.className = 'p-3';
+                searchResults.appendChild(searchResultsContainer);
+            }
 
-            // Show loading state in the temp container
-            tempContainer.innerHTML = `
-                <div id="searchResultsContainer" class="search-results-container">
-                    <div class="text-center p-4">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Buscando...</span>
-                        </div>
-                        <p class="mt-2">Buscando "${query}" en Modrinth...</p>
+            // Clear existing results
+            searchResultsContainer.innerHTML = '';
+
+            // Show loading state
+            searchResultsContainer.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Buscando...</span>
                     </div>
+                    <p class="mt-2">Buscando "${query}" en Modrinth...</p>
                 </div>`;
-
-            // Safely replace the content
-            searchResults.innerHTML = '';
-            searchResults.appendChild(tempContainer.firstElementChild);
-
-            // Get the actual container we'll use for results
-            const searchResultsContainer = document.getElementById('searchResultsContainer');
 
             // Hide any existing spinners
             const searchingSpinner = document.getElementById('searchingSpinner');
