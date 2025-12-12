@@ -893,12 +893,10 @@
                             modsContainer.appendChild(modCard);
                             modCards.push({ mod, element: modCard });
 
-                            // Get real compatibility info in background
-                            getModCompatibility(mod.name)
-                                .then(compatibility => updateModCompatibility(modCard, mod, compatibility))
-                                .catch(error => {
-                                    console.error(`Error getting compatibility for ${mod.name}:`, error);
-                                });
+                            // Automatically trigger search for this mod
+                            setTimeout(() => {
+                                showSearchResults(mod, modCard);
+                            }, 500); // Small delay to avoid overwhelming the API
 
                         } catch (error) {
                             console.error(`Error processing mod ${mod.name}:`, error);
