@@ -516,8 +516,10 @@
             if (!cardElement.querySelector('.original-name')) {
                 originalNameElement.className = 'original-name small text-muted';
                 const modCard = cardElement.querySelector('.mod-card');
-                if (modCard) {
+                if (modCard && compatibilityElement.parentNode === modCard) {
                     modCard.insertBefore(originalNameElement, compatibilityElement);
+                } else if (modCard) {
+                    modCard.appendChild(originalNameElement);
                 }
             }
 
@@ -543,8 +545,6 @@
             // Add success border
             cardElement.querySelector('.mod-card').classList.add('border', 'border-success');
         }
-
-
 
         // Search functionality variables will be initialized in DOMContentLoaded
         let currentMod = null;
