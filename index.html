@@ -142,20 +142,20 @@
                     <div class="form-text">Selecciona la carpeta que contiene tus archivos .jar de Minecraft</div>
                 </div>
 
-                <div id="modsComparison" class="row mt-4 d-none">
+                <div id="modsComparison" class="row mt-4 d-none" style="max-height: 600px; overflow: hidden;">
                     <div class="col-md-4">
-                        <div class="card h-100">
+                        <div class="card h-100" style="max-height: 600px;">
                             <div class="card-header bg-secondary">
                                 <h5 class="mb-0">Mods Locales</h5>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="card-body p-0" style="overflow: hidden;">
                                 <div id="localModsList" class="list-group list-group-flush"
-                                    style="max-height: 500px; overflow-y: auto;"></div>
+                                    style="max-height: 520px; overflow-y: auto;"></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-8">
-                        <div class="card h-100">
+                        <div class="card h-100" style="max-height: 600px;">
                             <div class="card-header bg-secondary d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">Resultados de Búsqueda</h5>
                                 <span id="searchingSpinner" class="spinner-border spinner-border-sm d-none"
@@ -163,9 +163,9 @@
                                     <span class="visually-hidden">Buscando...</span>
                                 </span>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="card-body p-0" style="overflow: hidden;">
                                 <div id="searchResults" class="list-group list-group-flush"
-                                    style="max-height: 500px; overflow-y: auto;">
+                                    style="max-height: 520px; overflow-y: auto;">
                                     <div class="text-center p-5 text-muted">
                                         <i class="bi bi-search" style="font-size: 2rem;"></i>
                                         <p class="mt-2">Selecciona un mod de la lista para ver los resultados</p>
