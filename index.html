@@ -958,6 +958,11 @@
                                     mod.compatibility.server_side = 'optional';
                                     mod.compatibility.title = 'Probablemente ambos lados';
                                 }
+
+                                // Automatically trigger search ONLY for mods without existing data
+                                setTimeout(() => {
+                                    showSearchResults(mod, modCard);
+                                }, 1000 * (index + 1)); // Incremental delay: 1s, 2s, 3s...
                             }
 
                             // Create mod card with initial information
@@ -975,11 +980,6 @@
 
                             modsContainer.appendChild(modCard);
                             modCards.push({ mod, element: modCard });
-
-                            // Automatically trigger search for ALL mods with incremental delay
-                            setTimeout(() => {
-                                showSearchResults(mod, modCard);
-                            }, 1000 * (index + 1)); // Incremental delay: 1s, 2s, 3s...
                         } catch (error) {
                             console.error(`Error processing mod ${mod.name}:`, error);
                         }
