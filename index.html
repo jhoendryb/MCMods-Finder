@@ -848,7 +848,7 @@
 
             // Manejar selección de archivos
             modsFolderInput.addEventListener('change', async (event) => {
-                const files = Array.from(event.target.files);
+                const files = Array.from(event.target.files).sort((a, b) => a.name.localeCompare(b.name));
                 const modsComparison = document.getElementById('modsComparison');
 
                 // Mostrar la sección de comparación
