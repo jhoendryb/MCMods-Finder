@@ -234,17 +234,16 @@
 
         // Función para obtener el archivo de compatibilidad (simulado)
         async function getCompatibilityFile(modsPath) {
-            // En un entorno real, esto leería el archivo mods-compatibility.json
-            // Por ahora lo simulamos con localStorage
-            const key = `mods-compatibility-${modsPath}`;
+            // Usar una clave genérica para todos los mods
+            const key = 'mods-compatibility-data-' + modsPath;
             return localStorage.getItem(key);
         }
 
         // Función para guardar el archivo de compatibilidad (simulado)
         async function saveCompatibilityFile(modsPath, content) {
             // En un entorno real, esto escribiría el archivo mods-compatibility.json
+            const key = 'mods-compatibility-data-' + modsPath;
             // Por ahora lo simulamos con localStorage
-            const key = `mods-compatibility-${modsPath}`;
             localStorage.setItem(key, content);
         }
 
@@ -881,8 +880,14 @@
                         };
                     });
 
-                // Guardar la ruta actual de los mods
-                currentModsPath = files.length > 0 ? files[0].webkitRelativePath : null;
+                // Guardar la ruta actual de los mods (usar directorio padre, no primer archivo específico)
+                if (files.length > 0) {
+                    const fullPath = files[0].webkitRelativePath;
+                    // Extraer el primer directorio del path (ej: "mods/filename.jar" -> "mods")
+                    currentModsPath = fullPath.split('/')[0];
+                } else {
+                    currentModsPath = null;
+                }
 
                 // Cargar datos de compatibilidad existentes
                 if (currentModsPath) {
