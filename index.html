@@ -202,6 +202,57 @@
     <script src="src/js/api/apiModrinth.js"></script>
 
     <script>
+        // Variables globales para almacenar datos
+        let currentMod = null;
+        let currentModElement = null;
+        let localMods = [];
+        let compatibilityData = {};
+        let currentModsPath = null;
+
+        // Funciones para manejar el archivo JSON de compatibilidad
+        async function loadCompatibilityData(modsPath) {
+            try {
+                // Intentar leer el archivo de compatibilidad existente
+                const compatibilityFile = await getCompatibilityFile(modsPath);
+                if (compatibilityFile) {
+                    return JSON.parse(compatibilityFile);
+                }
+            } catch (error) {
+                console.log('No se encontró archivo de compatibilidad, se creará uno nuevo');
+            }
+            return {};
+        }
+
+        async function saveCompatibilityData(modsPath, data) {
+            try {
+                await saveCompatibilityFile(modsPath, JSON.stringify(data, null, 2));
+                console.log('Datos de compatibilidad guardados exitosamente');
+            } catch (error) {
+                console.error('Error guardando datos de compatibilidad:', error);
+            }
+        }
+
+        // Función para obtener el archivo de compatibilidad (simulado)
+        async function getCompatibilityFile(modsPath) {
+            // En un entorno real, esto leería el archivo mods-compatibility.json
+            // Por ahora lo simulamos con localStorage
+            const key = `mods-compatibility-${modsPath}`;
+            return localStorage.getItem(key);
+        }
+
+        // Función para guardar el archivo de compatibilidad (simulado)
+        async function saveCompatibilityFile(modsPath, content) {
+            // En un entorno real, esto escribiría el archivo mods-compatibility.json
+            // Por ahora lo simulamos con localStorage
+            const key = `mods-compatibility-${modsPath}`;
+            localStorage.setItem(key, content);
+        }
+
+        // Función para generar un identificador único para el mod basado en su nombre
+        function getModId(mod) {
+            return mod.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        }
+
         function showSearchResults(mod, modElement, searchQuery = null) {
             // Store references to the current mod and its element
             currentMod = mod;
@@ -496,6 +547,11 @@
                 mod_info: selectedMod
             };
 
+            // Guardar en el archivo de compatibilidad
+            const modId = getModId(currentMod);
+            compatibilityData[modId] = currentMod.compatibility;
+            saveCompatibilityData(currentModsPath, compatibilityData);
+
             // Update the UI
             updateModCard(currentModElement, currentMod);
 
@@ -553,10 +609,6 @@
             // Add success border
             cardElement.querySelector('.mod-card').classList.add('border', 'border-success');
         }
-
-        // Search functionality variables will be initialized in DOMContentLoaded
-        let currentMod = null;
-        let currentModElement = null;
 
         function showLoading(show) {
             const spinner = document.getElementById('loadingSpinner');
@@ -829,10 +881,18 @@
                         };
                     });
 
+                // Guardar la ruta actual de los mods
+                currentModsPath = files.length > 0 ? files[0].webkitRelativePath : null;
+
+                // Cargar datos de compatibilidad existentes
+                if (currentModsPath) {
+                    compatibilityData = await loadCompatibilityData(currentModsPath);
+                    console.log('Datos de compatibilidad cargados:', compatibilityData);
+                }
+
                 // Procesar los mods locales
                 processLocalMods(localMods);
             });
-
 
             async function processLocalMods(mods) {
                 const modsContainer = document.getElementById('localModsList');
@@ -861,28 +921,40 @@
                 try {
                     mods.forEach((mod, index) => {
                         try {
-                            // Set default compatibility based on filename
-                            mod.compatibility = {
-                                client_side: 'unknown',
-                                server_side: 'unknown',
-                                title: 'No verificado',
-                                verified: false
-                            };
+                            // Check if we have compatibility data for this mod
+                            const modId = getModId(mod);
+                            const existingCompatibility = compatibilityData[modId];
 
-                            // Try to guess compatibility based on filename
-                            const lowerName = mod.name.toLowerCase();
-                            if (lowerName.includes('client') || lowerName.includes('cliente')) {
-                                mod.compatibility.client_side = 'required';
-                                mod.compatibility.server_side = 'unsupported';
-                                mod.compatibility.title = 'Probablemente solo cliente';
-                            } else if (lowerName.includes('server') || lowerName.includes('servidor')) {
-                                mod.compatibility.server_side = 'required';
+                            if (existingCompatibility) {
+                                // Use existing compatibility data
+                                mod.compatibility = existingCompatibility;
+                                console.log(`Cargando compatibilidad existente para: ${mod.name}`);
+                            } else {
+                                // Set default compatibility based on filename
+                                mod.compatibility = {
+                                    client_side: 'unknown',
+                                    server_side: 'unknown',
+                                    title: 'No verificado',
+                                    verified: false
+                                };
+
+                                // Try to guess compatibility based on filename
+                                const lowerName = mod.name.toLowerCase();
+                                if (lowerName.includes('client') || lowerName.includes('cliente')) {
+                                    mod.compatibility.client_side = 'required';
+                                    mod.compatibility.server_side = 'unsupported';
+                                    mod.compatibility.title = 'Probablemente solo cliente';
+                                } else if (lowerName.includes('server') || lowerName.includes('servidor')) {
+                                    mod.compatibility.server_side = 'required';
+                                    mod.compatibility.client_side = 'unsupported';
+                                    mod.compatibility.title = 'Probablemente solo servidor';
+                                } else if (lowerName.includes('common') || lowerName.includes('comun')) {
+                                    mod.compatibility.client_side = 'optional';
+                                    mod.compatibility.server_side = 'optional';
+                                    mod.compatibility.title = 'Probablemente ambos lados';
+                                }
                                 mod.compatibility.client_side = 'unsupported';
                                 mod.compatibility.title = 'Probablemente solo servidor';
-                            } else if (lowerName.includes('common') || lowerName.includes('comun')) {
-                                mod.compatibility.client_side = 'optional';
-                                mod.compatibility.server_side = 'optional';
-                                mod.compatibility.title = 'Probablemente ambos lados';
                             }
 
                             // Create mod card with initial information
